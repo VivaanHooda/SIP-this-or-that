@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Allow read/write access to debate and teams documents
+    match /debate/{document} {
+      allow read, write: if true;
+    }
+    
+    match /teams/{document} {
+      allow read, write: if true;
+    }
+    
+    // Default rule - deny all other access
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

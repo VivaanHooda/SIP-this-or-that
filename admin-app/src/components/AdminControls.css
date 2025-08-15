@@ -1,0 +1,216 @@
+/* AdminControls.css - Dark Theme */
+.admin-controls {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  padding: 24px;
+  color: var(--text);
+  margin-bottom: 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  font-family: "Mozilla Headline", sans-serif;
+}
+
+.admin-controls h3,
+.admin-controls h4,
+.admin-controls h5 {
+  color: var(--text);
+  margin-bottom: 16px;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 600;
+}
+
+.control-section {
+  margin-bottom: 24px;
+}
+
+.control-section:last-child {
+  margin-bottom: 0;
+}
+
+.control-section input,
+.control-section select {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+  font-size: 14px;
+  transition: all 0.3s ease;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 400;
+}
+
+.control-section input:focus,
+.control-section select:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+}
+
+.control-section input::placeholder { 
+  color: var(--muted); 
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 300;
+}
+
+.debater-form {
+  display: grid;
+  grid-template-columns: 1fr 160px 140px;
+  gap: 16px;
+  align-items: end;
+}
+
+.debater-form select { 
+  color: var(--text); 
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 400;
+}
+
+.debater-form button,
+.team-actions .clear-btn,
+.switch-btn,
+.start-debate-btn {
+  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 10px;
+  padding: 12px 20px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  min-height: 44px;
+  font-family: "Mozilla Headline", sans-serif;
+}
+
+.debater-form button:hover,
+.team-actions .clear-btn:hover,
+.switch-btn:hover,
+.start-debate-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
+}
+
+.teams-management {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.team-section {
+  background: rgba(255,255,255,0.05);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+}
+
+.team-section h4 {
+  margin-bottom: 16px;
+  color: var(--text);
+  text-align: center;
+  font-size: 18px;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 600;
+}
+
+.debater-list { 
+  list-style: none; 
+  padding: 0; 
+  margin: 0; 
+}
+
+.debater-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--card-border);
+  border-left: 4px solid #3b82f6;
+  border-radius: 10px;
+  color: var(--text);
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 400;
+}
+
+.debater-list li:last-child {
+  margin-bottom: 0;
+}
+
+.remove-btn {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 500;
+}
+
+.remove-btn:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.debate-status { 
+  display: flex; 
+  gap: 16px; 
+  align-items: center; 
+  margin-top: 20px;
+}
+
+.status-active { 
+  color: var(--muted); 
+  margin: 0; 
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 400;
+}
+
+.team-actions {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.clear-btn {
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8) !important;
+  margin-right: 12px;
+}
+
+.switch-btn {
+  background: linear-gradient(90deg, #06b6d4, #0891b2) !important;
+  margin-right: 12px;
+}
+
+.start-debate-btn {
+  background: linear-gradient(90deg, #0ea5e9, #0284c7) !important;
+}
+
+@media (max-width: 768px) {
+  .debater-form { 
+    grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+  
+  .teams-management { 
+    grid-template-columns: 1fr; 
+    gap: 16px;
+  }
+  
+  .admin-controls {
+    padding: 20px;
+  }
+  
+  .debate-status {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

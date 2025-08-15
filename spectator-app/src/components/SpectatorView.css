@@ -1,0 +1,304 @@
+/* SpectatorView.css - Dark Theme */
+.spectator-view {
+  max-width: 900px;
+  margin: 20px auto;
+  padding: 24px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 14px;
+  color: var(--text);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+  font-family: "Mozilla Headline", sans-serif;
+}
+
+/* Waiting Container */
+.waiting-container {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.waiting-container h3 { 
+  color: var(--text); 
+  margin-bottom: 16px;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 600;
+}
+
+.waiting-container p { 
+  color: var(--muted); 
+  font-size: 16px;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 400;
+}
+
+/* Teams Preview */
+.teams-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-top: 30px;
+}
+
+.team-preview {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--card-border);
+  border-radius: 10px;
+  padding: 16px;
+}
+
+.team-preview h4 {
+  color: var(--text);
+  background: transparent;
+  padding: 0;
+  text-align: center;
+  font-size: 18px;
+  margin-bottom: 16px;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 600;
+}
+
+.team-preview-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.team-preview-list li {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  border-left: 3px solid #3b82f6;
+  color: var(--text);
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 400;
+}
+
+.team-preview-list li:last-child {
+  margin-bottom: 0;
+}
+
+/* Spectator Header */
+.spectator-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--card-border);
+}
+
+.spectator-header h3 {
+  color: var(--text);
+  margin: 0;
+  font-size: 24px;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 600;
+}
+
+.debate-status-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(59, 130, 246, 0.15);
+  color: #93c5fd;
+  padding: 10px 18px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 14px;
+  font-family: "Mozilla Headline", sans-serif;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  background: #3b82f6;
+  border-radius: 50%;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% { opacity: 1; }
+  50% { opacity: 0.5; }
+  100% { opacity: 1; }
+}
+
+/* Teams Display */
+.teams-display {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
+  margin-bottom: 30px;
+}
+
+.team-section {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--card-border);
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.team-section h4 {
+  color: var(--text);
+  margin-bottom: 16px;
+  text-align: center;
+  font-size: 18px;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 600;
+}
+
+.team-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.team-list li {
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  background: rgba(255,255,255,0.04);
+  border-radius: 6px;
+  border-left: 4px solid #3b82f6;
+  transition: all 0.3s ease;
+  color: var(--text);
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 400;
+}
+
+.team-list li:last-child {
+  margin-bottom: 0;
+}
+
+.team-list li.speaking {
+  background: rgba(59, 130, 246, 0.18);
+  border-left-color: #3b82f6;
+  font-weight: 600;
+  color: var(--text);
+}
+
+/* Voting Section */
+.voting-section {
+  text-align: center;
+  padding: 24px;
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.voting-section h4 {
+  color: var(--text);
+  margin-bottom: 12px;
+  font-size: 20px;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 600;
+}
+
+.voting-section p {
+  color: var(--muted);
+  margin-bottom: 24px;
+  font-size: 16px;
+  font-family: "Mozilla Headline", sans-serif;
+  font-weight: 400;
+}
+
+.vote-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.vote-btn {
+  padding: 14px 28px;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 140px;
+  min-height: 48px;
+  background: linear-gradient(90deg, #3b82f6, #06b6d4);
+  color: white;
+  font-family: "Mozilla Headline", sans-serif;
+}
+
+.vote-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.35);
+}
+
+.vote-btn.switch {
+  background: linear-gradient(90deg, #3b82f6, #1d4ed8);
+  color: white;
+}
+
+.vote-btn.switch:hover {
+  background: linear-gradient(90deg, #1d4ed8, #1e40af);
+  transform: translateY(-2px);
+}
+
+.vote-btn.dont-switch {
+  background: linear-gradient(90deg, #06b6d4, #0891b2);
+  color: white;
+}
+
+.vote-btn.dont-switch:hover {
+  background: linear-gradient(90deg, #0891b2, #0e7490);
+  transform: translateY(-2px);
+}
+
+/* Voted Message */
+.voted-message {
+  text-align: center;
+  padding: 30px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+}
+
+.voted-message p {
+  color: #93c5fd;
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0;
+  font-family: "Mozilla Headline", sans-serif;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .teams-preview,
+  .teams-display {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  
+  .vote-buttons {
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .vote-btn {
+    width: 100%;
+    max-width: 250px;
+    min-width: auto;
+  }
+  
+  .spectator-header {
+    flex-direction: column;
+    gap: 16px;
+    text-align: center;
+  }
+  
+  .debate-status-badge {
+    align-self: center;
+  }
+  
+  .spectator-view {
+    padding: 20px;
+    margin: 16px;
+  }
+}
