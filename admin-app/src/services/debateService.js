@@ -1,180 +1,78 @@
-// admin-app/src/services/debateService.js
-import { 
-  doc, 
-  setDoc, 
-  getDoc, 
-  onSnapshot,
-  collection,
-  addDoc,
-  updateDoc,
-  deleteDoc
-} from 'firebase/firestore';
 import { db } from '../firebase';
+import { doc, setDoc, onSnapshot } from 'firebase/firestore';
 
-// Document references
-const DEBATE_DOC = 'debate';
-const TEAMS_COLLECTION = 'teams';
+// Save room details (teams, topic) to Firestore
+export async function saveRoomDetails(roomKey, { teams, topic }) {
+  await setDoc(doc(db, 'rooms', roomKey), {
+    teams,
+    topic,
+    createdAt: Date.now(),
+  });
+}
 
-// Initialize debate data in Firestore
-export const initializeDebate = async () => {
-  try {
-    const debateRef = doc(db, DEBATE_DOC, 'current');
-    const debateData = {
-      topic: "Is technology making us less social?",
-      debateStarted: false,
-      speakingFor: 'A',
-      votes: { switch: 0, dontSwitch: 0 },
-      lastUpdated: new Date().toISOString()
-    };
-    
-    await setDoc(debateRef, debateData);
-    console.log('Debate initialized in Firestore');
-    return debateData;
-  } catch (error) {
-    console.error('Error initializing debate:', error);
-    throw error;
-  }
+// Listen to votes for a room
+export function listenToVotes(roomKey, setVotes) {
+  return onSnapshot(doc(db, 'rooms', roomKey), (docSnap) => {
+    const data = docSnap.data();
+    setVotes(data && data.votes ? data.votes : {});
+  });
+}
+// admin-app/src/services/debateService.js
+import { initializeApp } from 'firebase/app';
+import { getFirestore, doc, setDoc, onSnapshot, updateDoc, collection, query, where, getDocs } from 'firebase/firestore';
+
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "YOUR_FIREBASE_API_KEY",
+  authDomain: "YOUR_FIREBASE_AUTH_DOMAIN",
+  projectId: "YOUR_FIREBASE_PROJECT_ID",
+  storageBucket: "YOUR_FIREBASE_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_FIREBASE_MESSAGING_SENDER_ID",
+  appId: "YOUR_FIREBASE_APP_ID"
 };
 
-// Get current debate data
-export const getDebateData = async () => {
-  try {
-    const debateRef = doc(db, DEBATE_DOC, 'current');
-    const debateSnap = await getDoc(debateRef);
-    
-    if (debateSnap.exists()) {
-      return debateSnap.data();
-    } else {
-      // Initialize if doesn't exist
-      return await initializeDebate();
-    }
-  } catch (error) {
-    console.error('Error getting debate data:', error);
-    throw error;
-  }
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// Function to create a new classroom
+export const createClassroom = async (classroomData) => {
+  const classroomRef = doc(collection(db, 'classrooms'));
+  await setDoc(classroomRef, {
+    ...classroomData,
+    id: classroomRef.id,
+    createdAt: new Date(),
+    votes: { switch: 0, dontSwitch: 0 },
+  });
+  return { ...classroomData, id: classroomRef.id };
 };
 
-// Listen to real-time debate updates
-export const subscribeToDebate = (callback) => {
-  const debateRef = doc(db, DEBATE_DOC, 'current');
-  
-  return onSnapshot(debateRef, (doc) => {
+// Function to verify if a classroom exists and get its data
+export const verifyClassroom = async (password) => {
+  const q = query(collection(db, 'classrooms'), where('password', '==', password));
+  const querySnapshot = await getDocs(q);
+  if (querySnapshot.empty) {
+    return null; // No classroom found
+  }
+  const classroomDoc = querySnapshot.docs[0];
+  return { id: classroomDoc.id, ...classroomDoc.data() };
+};
+
+// Function to update the debate teams and topic
+export const updateDebate = async (classroomId, data) => {
+  const classroomRef = doc(db, 'classrooms', classroomId);
+  await updateDoc(classroomRef, data);
+};
+
+// Function to subscribe to a debate and get real-time updates
+export const subscribeToDebate = (classroomId, callback) => {
+  const classroomRef = doc(db, 'classrooms', classroomId);
+  const unsubscribe = onSnapshot(classroomRef, (doc) => {
     if (doc.exists()) {
       callback(doc.data());
-    }
-  }, (error) => {
-    console.error('Error listening to debate:', error);
-  });
-};
-
-// Update debate topic
-export const updateTopic = async (newTopic) => {
-  try {
-    const debateRef = doc(db, DEBATE_DOC, 'current');
-    await updateDoc(debateRef, {
-      topic: newTopic,
-      debateStarted: false,
-      votes: { switch: 0, dontSwitch: 0 },
-      lastUpdated: new Date().toISOString()
-    });
-    console.log('Topic updated:', newTopic);
-  } catch (error) {
-    console.error('Error updating topic:', error);
-    throw error;
-  }
-};
-
-// Start debate
-export const startDebate = async () => {
-  try {
-    const debateRef = doc(db, DEBATE_DOC, 'current');
-    await updateDoc(debateRef, {
-      debateStarted: true,
-      lastUpdated: new Date().toISOString()
-    });
-    console.log('Debate started');
-  } catch (error) {
-    console.error('Error starting debate:', error);
-    throw error;
-  }
-};
-
-// Switch sides
-export const switchSides = async () => {
-  try {
-    const debateRef = doc(db, DEBATE_DOC, 'current');
-    const currentData = await getDebateData();
-    const newSpeakingFor = currentData.speakingFor === 'A' ? 'B' : 'A';
-    
-    await updateDoc(debateRef, {
-      speakingFor: newSpeakingFor,
-      votes: { switch: 0, dontSwitch: 0 },
-      lastUpdated: new Date().toISOString()
-    });
-    console.log('Sides switched to Team', newSpeakingFor);
-  } catch (error) {
-    console.error('Error switching sides:', error);
-    throw error;
-  }
-};
-
-// Update teams
-export const updateTeams = async (teamA, teamB) => {
-  try {
-    const teamsRef = doc(db, TEAMS_COLLECTION, 'current');
-    await setDoc(teamsRef, {
-      teamA,
-      teamB,
-      lastUpdated: new Date().toISOString()
-    });
-    console.log('Teams updated');
-  } catch (error) {
-    console.error('Error updating teams:', error);
-    throw error;
-  }
-};
-
-// Get teams
-export const getTeams = async () => {
-  try {
-    const teamsRef = doc(db, TEAMS_COLLECTION, 'current');
-    const teamsSnap = await getDoc(teamsRef);
-    
-    if (teamsSnap.exists()) {
-      return teamsSnap.data();
     } else {
-      return { teamA: [], teamB: [] };
+      console.log("No such document!");
     }
-  } catch (error) {
-    console.error('Error getting teams:', error);
-    throw error;
-  }
-};
-
-// Listen to real-time team updates
-export const subscribeToTeams = (callback) => {
-  const teamsRef = doc(db, TEAMS_COLLECTION, 'current');
-  
-  return onSnapshot(teamsRef, (doc) => {
-    if (doc.exists()) {
-      callback(doc.data());
-    }
-  }, (error) => {
-    console.error('Error listening to teams:', error);
   });
-};
-
-// Update votes (called when spectators vote)
-export const updateVotes = async (votes) => {
-  try {
-    const debateRef = doc(db, DEBATE_DOC, 'current');
-    await updateDoc(debateRef, {
-      votes,
-      lastUpdated: new Date().toISOString()
-    });
-    console.log('Votes updated:', votes);
-  } catch (error) {
-    console.error('Error updating votes:', error);
-    throw error;
-  }
+  return unsubscribe;
 };

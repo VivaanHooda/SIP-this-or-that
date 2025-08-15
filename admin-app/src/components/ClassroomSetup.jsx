@@ -1,5 +1,6 @@
+// admin-app/src/components/ClassroomSetup.jsx
 import React, { useState } from 'react';
-import { generateDebatePassword, createClassroom, validatePassword } from '../services/geminiService';
+import { generateDebatePassword, createClassroom } from '../services/geminiService';
 import './ClassroomSetup.css';
 
 function ClassroomSetup({ onClassroomCreated, onBack }) {
@@ -41,44 +42,21 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
 
   const handleCopyPassword = () => {
     navigator.clipboard.writeText(password);
-    // You could add a toast notification here
+    alert('Password copied to clipboard!');
   };
 
   const handleCreateClassroom = async () => {
-    if (!formData.name.trim() || !formData.adminName.trim()) {
-      setError('Please fill in all required fields.');
-      return;
-    }
-
-    if (!password) {
-      setError('Please generate a password for the classroom.');
-      return;
-    }
-
-    if (!validatePassword(password)) {
-      setError('Password must be between 6 and 20 characters.');
-      return;
-    }
-
     setIsCreating(true);
     setError('');
 
     try {
-      const classroomData = {
-        name: formData.name.trim(),
-        adminName: formData.adminName.trim(),
-        topic: formData.topic.trim(),
-        password: password
-      };
-
-      const classroom = await createClassroom(classroomData);
-      
-      // Store classroom info in localStorage for persistence
-      localStorage.setItem('currentClassroom', JSON.stringify(classroom));
-      
-      onClassroomCreated(classroom);
+      const newClassroom = await createClassroom({
+        ...formData,
+        password: password,
+      });
+      onClassroomCreated(newClassroom);
     } catch (error) {
-      setError(error.message || 'Failed to create classroom. Please try again.');
+      setError('Failed to create classroom. Please try again.');
       console.error('Classroom creation error:', error);
     } finally {
       setIsCreating(false);
@@ -88,64 +66,53 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
   return (
     <div className="classroom-setup">
       <div className="setup-header">
-        <button className="back-btn" onClick={onBack}>
+        <button onClick={onBack} className="back-btn">
           ← Back
         </button>
-        <h2>Create New Classroom</h2>
-        <p>Set up a new debate session for your students</p>
+        <h2>Create a New Classroom</h2>
+        <p className="setup-description">
+          Fill in the details to start your debate session
+        </p>
       </div>
 
-      {error && (
-        <div className="error-message">
-          {error}
-        </div>
-      )}
+      {error && <div className="error-message">{error}</div>}
 
       <div className="setup-form">
         <div className="form-group">
-          <label htmlFor="name">Classroom Name *</label>
+          <label htmlFor="name">Classroom Name</label>
           <input
-            type="text"
             id="name"
             name="name"
-            className="classroom-input"
-            placeholder="e.g., English 101 - Period 3"
+            type="text"
             value={formData.name}
             onChange={handleInputChange}
-            required
+            placeholder="e.g., Debate 101"
           />
         </div>
-
         <div className="form-group">
-          <label htmlFor="adminName">Admin Name *</label>
+          <label htmlFor="adminName">Your Name</label>
           <input
-            type="text"
             id="adminName"
             name="adminName"
-            className="classroom-input"
-            placeholder="e.g., Ms. Johnson"
+            type="text"
             value={formData.adminName}
             onChange={handleInputChange}
-            required
+            placeholder="e.g., Jane Doe"
           />
         </div>
-
         <div className="form-group">
-          <label htmlFor="topic">Default Debate Topic</label>
-          <input
-            type="text"
+          <label htmlFor="topic">Debate Topic</label>
+          <textarea
             id="topic"
             name="topic"
-            className="classroom-input"
-            placeholder="e.g., Is technology making us less social?"
             value={formData.topic}
             onChange={handleInputChange}
+            placeholder="Enter the debate topic..."
           />
         </div>
-
-        <div className="password-section">
-          <label>Classroom Password *</label>
-          <div className="password-generator">
+        <div className="form-group">
+          <label>Session Password</label>
+          <div className="password-controls">
             <button
               className="generate-btn"
               onClick={handleGeneratePassword}

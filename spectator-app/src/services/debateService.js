@@ -1,3 +1,27 @@
+import { db } from '../firebase';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
+
+// Join a room by key
+export async function joinRoom(roomKey) {
+  const docRef = doc(db, 'rooms', roomKey);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    return docSnap.data();
+  }
+  return null;
+}
+
+// Vote for a team
+export async function voteForTeam(roomKey, team) {
+  const docRef = doc(db, 'rooms', roomKey);
+  const docSnap = await getDoc(docRef);
+  if (docSnap.exists()) {
+    const data = docSnap.data();
+    const votes = data.votes || {};
+    votes[team] = (votes[team] || 0) + 1;
+    await updateDoc(docRef, { votes });
+  }
+}
 // spectator-app/src/services/debateService.js
 import { 
   doc, 

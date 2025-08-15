@@ -4,14 +4,14 @@ import DebateView from './components/DebateView';
 import AdminControls from './components/AdminControls';
 import ClassroomSetup from './components/ClassroomSetup';
 // import DebateBackground from './components/DebateBackground';
-import { 
-  getDebateData, 
-  subscribeToDebate, 
-  updateTopic, 
-  startDebate, 
-  switchSides, 
-  updateTeams, 
-  getTeams, 
+import {
+  getDebateData,
+  subscribeToDebate,
+  updateTopic,
+  startDebate,
+  switchSides,
+  updateTeams,
+  getTeams,
   subscribeToTeams,
   createClassroom,
   verifyClassroom
@@ -31,39 +31,36 @@ function App() {
   const [appState, setAppState] = useState('loading'); // 'loading', 'welcome', 'setup', 'debate'
 
   // Check for existing classroom on load
-  useEffect(() => {
-    const savedClassroom = localStorage.getItem('currentClassroom');
-    if (savedClassroom) {
-      try {
-        const classroom = JSON.parse(savedClassroom);
-        // Verify the classroom still exists
-        verifyClassroom(classroom.id).then((exists) => {
-          if (exists) {
-            setCurrentClassroom(classroom);
-            setAppState('debate');
-            loadDebateDataForClassroom(classroom.id);
-          } else {
-            localStorage.removeItem('currentClassroom');
-            setAppState('welcome');
-            setIsLoading(false);
-          }
-        });
-      } catch (error) {
-        console.error('Error loading saved classroom:', error);
-        localStorage.removeItem('currentClassroom');
-        setAppState('welcome');
-        setIsLoading(false);
-      }
-    } else {
-      setAppState('welcome');
-      setIsLoading(false);
-    }
-  }, []);
+  // DEV MODE: Skip verification and load dummy classroom immediately
+useEffect(() => {
+  // force disable loading state
+  setIsLoading(false);
+
+  // set app state directly to debate
+  setAppState("debate");
+
+  // create dummy classroom data
+  setCurrentClassroom({
+    id: "dev123456",
+    name: "Test Classroom",
+    adminName: "Dev Admin",
+    password: "123456"
+  });
+
+  // mock debate state
+  setTopic("Sample Debate Topic");
+  setVotes({ switch: 0, dontSwitch: 0 });
+  setSpeakingFor("A");
+  setTeamA(["Alice", "Bob"]);
+  setTeamB(["Charlie", "Dana"]);
+  setDebateStarted(false);
+}, []);
+
 
   const loadDebateDataForClassroom = async (classroomId) => {
     try {
       setIsLoading(true);
-      
+
       // Load from localStorage first for immediate UI update
       const savedTopic = localStorage.getItem(`debateTopic_${classroomId}`);
       const savedVotes = localStorage.getItem(`debateVotes_${classroomId}`);
@@ -71,30 +68,30 @@ function App() {
       const savedTeamA = localStorage.getItem(`debateTeamA_${classroomId}`);
       const savedTeamB = localStorage.getItem(`debateTeamB_${classroomId}`);
       const savedDebateStarted = localStorage.getItem(`debateStarted_${classroomId}`);
-      
+
       if (savedTopic) setTopic(savedTopic);
       if (savedVotes) setVotes(JSON.parse(savedVotes));
       if (savedSpeakingFor) setSpeakingFor(savedSpeakingFor);
       if (savedTeamA) setTeamA(JSON.parse(savedTeamA));
       if (savedTeamB) setTeamB(JSON.parse(savedTeamB));
       if (savedDebateStarted) setDebateStarted(JSON.parse(savedDebateStarted));
-      
+
       // Then load from Firebase for real-time data
       const debateData = await getDebateData(classroomId);
       const teamsData = await getTeams(classroomId);
-      
+
       if (debateData) {
         setTopic(debateData.topic || topic);
         setVotes(debateData.votes || votes);
         setSpeakingFor(debateData.speakingFor || speakingFor);
         setDebateStarted(debateData.debateStarted || false);
       }
-      
+
       if (teamsData) {
         setTeamA(teamsData.teamA || []);
         setTeamB(teamsData.teamB || []);
       }
-      
+
       setIsLoading(false);
     } catch (error) {
       console.error('Error loading debate data:', error);
@@ -112,7 +109,7 @@ function App() {
         setVotes(debateData.votes);
         setSpeakingFor(debateData.speakingFor);
         setDebateStarted(debateData.debateStarted);
-        
+
         // Save to localStorage with classroom ID
         localStorage.setItem(`debateTopic_${currentClassroom.id}`, debateData.topic);
         localStorage.setItem(`debateVotes_${currentClassroom.id}`, JSON.stringify(debateData.votes));
@@ -132,7 +129,7 @@ function App() {
       if (teamsData) {
         setTeamA(teamsData.teamA || []);
         setTeamB(teamsData.teamB || []);
-        
+
         // Save to localStorage with classroom ID
         localStorage.setItem(`debateTeamA_${currentClassroom.id}`, JSON.stringify(teamsData.teamA || []));
         localStorage.setItem(`debateTeamB_${currentClassroom.id}`, JSON.stringify(teamsData.teamB || []));
@@ -148,7 +145,7 @@ function App() {
       setCurrentClassroom(classroom);
       localStorage.setItem('currentClassroom', JSON.stringify(classroom));
       setAppState('debate');
-      
+
       // Initialize debate data for new classroom
       await handleSetTopic(topic);
       await handleUpdateTeams([], []);
@@ -168,11 +165,11 @@ function App() {
       localStorage.removeItem(`debateTeamB_${currentClassroom.id}`);
       localStorage.removeItem(`debateStarted_${currentClassroom.id}`);
     }
-    
+
     setCurrentClassroom(null);
     localStorage.removeItem('currentClassroom');
     setAppState('setup');
-    
+
     // Reset state
     setTopic("Is technology making us less social?");
     setVotes({ switch: 0, dontSwitch: 0 });
@@ -184,7 +181,7 @@ function App() {
 
   const handleSetTopic = async (newTopic) => {
     if (!currentClassroom) return;
-    
+
     try {
       await updateTopic(currentClassroom.id, newTopic);
       console.log('Topic updated successfully');
@@ -195,7 +192,7 @@ function App() {
 
   const handleStartDebate = async () => {
     if (!currentClassroom) return;
-    
+
     try {
       await startDebate(currentClassroom.id);
       console.log('Debate started successfully');
@@ -206,7 +203,7 @@ function App() {
 
   const handleSwitchSides = async () => {
     if (!currentClassroom) return;
-    
+
     try {
       await switchSides(currentClassroom.id);
       console.log('Sides switched successfully');
@@ -217,7 +214,7 @@ function App() {
 
   const handleUpdateTeams = async (newTeamA, newTeamB) => {
     if (!currentClassroom) return;
-    
+
     try {
       await updateTeams(currentClassroom.id, newTeamA, newTeamB);
       console.log('Teams updated successfully');
@@ -257,7 +254,7 @@ function App() {
           <p className="byline">Speak. Listen. Convince.</p>
           <p className="admin-subtitle">Create New Debate Session</p>
         </header>
-        <ClassroomSetup 
+        <ClassroomSetup
           onClassroomCreated={handleClassroomCreated}
           onBack={handleBackToWelcome}
         />
@@ -279,7 +276,7 @@ function App() {
           <div className="welcome-card">
             <h2>Welcome, Teacher!</h2>
             <p>Create and manage debate sessions for your classroom. Set topics, organize teams, and facilitate engaging discussions.</p>
-            
+
             <div className="admin-features">
               <div className="feature-item">
                 <h3>🎯 Set Topics</h3>
@@ -298,8 +295,8 @@ function App() {
                 <p>Monitor votes and participation</p>
               </div>
             </div>
-            
-            <button 
+
+            <button
               className="create-classroom-btn primary-btn"
               onClick={handleShowSetup}
             >
@@ -348,7 +345,7 @@ function App() {
         teamB={teamB}
         currentTopic={topic}
       />
-      
+
       <DebateView
         topic={topic}
         votes={votes}

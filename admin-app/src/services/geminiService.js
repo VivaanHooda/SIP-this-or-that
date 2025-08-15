@@ -1,8 +1,14 @@
+// Gemini API call for unique key generation
+export async function createRoomWithGemini() {
+  // Replace with actual Gemini API call
+  // For now, generate a random 6-digit key
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
 // Gemini API service for generating debate-related passwords
 import { db } from '../firebase';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
 
-const GEMINI_API_KEY = process.env.REACT_APP_GEMINI_API_KEY || 'AIzaSyCT33ONf8J1povWiKDGSigwPkg4lQr8ao8';
+const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY || 'AIzaSyCT33ONf8J1povWiKDGSigwPkg4lQr8ao8';
 const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
 
 export const generateDebatePassword = async () => {
