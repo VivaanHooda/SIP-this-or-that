@@ -205,7 +205,7 @@ function StudentRegistration({ classroom, onRegistrationComplete, onBack }) {
               <li>Teams are balanced automatically</li>
               <li>Your information is only used for this session</li>
               <li>You can participate in voting and discussions</li>
-              <li>Your teacher can see your participation</li>
+              <li>The volunteer can see your participation</li>
             </ul>
           </div>
         </div>

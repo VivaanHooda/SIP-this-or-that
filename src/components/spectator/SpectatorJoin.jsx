@@ -31,7 +31,7 @@ function SpectatorJoin({ onJoin, onBack }) {
       const foundClassroom = await getClassroomByPassword(password.trim());
       
       if (!foundClassroom) {
-        setError('Invalid session password. Please check with your teacher.');
+        setError('Invalid session password. Please check with the volunteer.');
         return;
       }
 
@@ -148,7 +148,7 @@ function SpectatorJoin({ onJoin, onBack }) {
                 <div className="step-number">1</div>
                 <div className="step-content">
                   <strong>Get Password</strong>
-                  <p>Your teacher will provide a unique session password</p>
+                  <p>The Volunteer will provide a unique session password</p>
                 </div>
               </div>
               <div className="help-step">
@@ -182,7 +182,7 @@ function SpectatorJoin({ onJoin, onBack }) {
               <li>View live debate topics and discussions</li>
               <li>Vote on whether teams should switch sides</li>
               <li>See real-time vote counts and participation</li>
-              <li>Your teacher can see your engagement</li>
+              <li>The volunteer can see your engagement</li>
             </ul>
           </div>
         </div>
