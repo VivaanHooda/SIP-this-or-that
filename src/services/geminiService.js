@@ -90,6 +90,7 @@ export const createRoomWithGemini = async () => {
     console.error('Error creating room with Gemini:', error);
     throw error;
   }
+
 };
 
 // Validate password format
@@ -133,12 +134,13 @@ export const createClassroom = async (classroomData) => {
     
     await setDoc(classroomRef, classroom);
     
-    // Also create the debate and teams documents for this classroom
     await setDoc(doc(db, 'debate', classroomRef.id), {
       topic: classroom.topic,
       votes: classroom.votes,
       speakingFor: classroom.speakingFor,
       debateStarted: classroom.debateStarted,
+      timer: 300, 
+      isTimerRunning: false,
       lastUpdated: new Date().toISOString()
     });
     
@@ -220,5 +222,57 @@ export const getAdminClassrooms = async (adminName) => {
   } catch (error) {
     console.error('Error getting admin classrooms:', error);
     throw error;
+  }
+};
+const fallbackTopics = [
+  "Should social media platforms be responsible for user-generated content?",
+  "Are movie remakes ever better than the original?",
+  "Is it acceptable to recline your seat on an airplane?",
+  "Is artificial intelligence a threat to humanity?",
+  "Streaming vs. Owning: Is it better to stream media (Netflix, Spotify) or own physical copies (Blu-rays, vinyl)?",
+  "AI in Music: Should artists be allowed to use AI to create songs?",
+];
+
+export const generateDebateTopic = async () => {
+  try {
+    const prompt = `Generate a single, engaging, and debatable topic suitable for college students.
+    The topic should be a question.
+    Do not add any extra text, introduction, or quotation marks.
+    No political or overly controversial topics. No topic to hurt the sentiments of any community.
+    Keep it concise (under 100 characters). Topics focusing on light-hearted subjects like social mdeia, pop culture, technology, movies, music, sports.
+    Keep in mind this is an ice-breaker debate topic for college students.
+    Examples:
+    - Streaming vs. Owning: Is it better to stream media (Netflix, Spotify) or own physical copies (Blu-rays, vinyl)?
+    - AI in Music: Should artists be allowed to use AI to create songs?`;
+
+    const response = await fetch(GEMINI_API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.9,
+          maxOutputTokens: 100,
+        },
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Gemini API error: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const generatedTopic = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+    if (!generatedTopic) {
+      // If AI fails, pick a random topic from our fallback list
+      return fallbackTopics[Math.floor(Math.random() * fallbackTopics.length)];
+    }
+
+    return generatedTopic;
+  } catch (error) {
+    console.error('Error generating topic with Gemini:', error);
+    // On any error, return a fallback topic
+    return fallbackTopics[Math.floor(Math.random() * fallbackTopics.length)];
   }
 };

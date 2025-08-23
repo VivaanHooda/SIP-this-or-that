@@ -547,3 +547,16 @@ export const listenToVotes = (roomKey, callback) => {
     callback({}); // Call callback with empty object on error
   });
 };
+export const updateTimer = async (classroomId, newTime, isRunning) => {
+  try {
+    const debateRef = doc(db, 'debate', classroomId);
+    await updateDoc(debateRef, {
+      timer: newTime,
+      isTimerRunning: isRunning,
+      lastUpdated: new Date().toISOString()
+    });
+    return true;
+  } catch (error) {
+    handleFirebaseError(error, 'updateTimer');
+  }
+};

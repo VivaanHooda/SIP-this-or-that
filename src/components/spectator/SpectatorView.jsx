@@ -3,6 +3,7 @@ import { Users, Vote, Clock, Trophy, AlertCircle, User, Hash } from 'lucide-reac
 import { useDebate } from '../../context/DebateContext';
 import { submitVote, getDebateData, getTeams } from '../../services/debateService';
 import VotePanel from './VotePanel';
+import TimerDisplay from './TimerDisplay';
 import './SpectatorView.css';
 
 function SpectatorView({ classroom, student }) {
@@ -170,6 +171,7 @@ function SpectatorView({ classroom, student }) {
           <p className="topic-text">{state.topic}</p>
         </div>
       </div>
+      {state.debateStarted && <TimerDisplay />}
 
       {/* Teams Overview */}
       <div className="teams-overview">

@@ -401,3 +401,16 @@
   outline: 2px solid var(--accent-primary);
   outline-offset: 2px;
 }
+.input-with-button {
+  display: flex;
+  align-items: flex-start; 
+  gap: 8px; 
+}
+
+.input-with-button textarea {
+  flex-grow: 1; 
+}
+
+.input-with-button button {
+  flex-shrink: 0; 
+}

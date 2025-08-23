@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowLeft, Plus, RefreshCw, Copy, Check } from 'lucide-react';
-import { generateDebatePassword } from '../../services/geminiService';
+import { generateDebatePassword, generateDebateTopic } from '../../services/geminiService';
 import './ClassroomSetup.css';
 
 function ClassroomSetup({ onClassroomCreated, onBack }) {
@@ -39,6 +39,10 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
     } finally {
       setIsGenerating(false);
     }
+  };
+  const handleGenerateTopic = async () => {
+    const topic = await generateDebateTopic();
+    setFormData(prev => ({ ...prev, topic: topic }));
   };
 
   const handleCopyPassword = async () => {
@@ -122,7 +126,7 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
               className="classroom-input"
               value={formData.name}
               onChange={handleInputChange}
-              placeholder="e.g., Period 3 English Debate, Advanced Rhetoric"
+              placeholder="e.g., CV 309"
               required
             />
           </div>
@@ -136,24 +140,33 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
               className="classroom-input"
               value={formData.adminName}
               onChange={handleInputChange}
-              placeholder="e.g., Ms. Johnson, Mr. Smith"
+              placeholder="e.g., Alice Johnson, John Doe"
               required
             />
           </div>
 
           <div className="form-group">
-            <label htmlFor="topic">Initial Debate Topic *</label>
+          <label htmlFor="topic">Initial Debate Topic *</label>
+          
+          {/* 👇 Wrap your textarea and the new button in this div 👇 */}
+          <div className="input-with-button">
             <textarea
               id="topic"
               name="topic"
-              className="classroom-input topic-input"
+              className="classroom-input topic-input" // Your existing classes
               value={formData.topic}
               onChange={handleInputChange}
               placeholder="Enter an engaging debate topic..."
               rows={3}
               required
             />
+            
+            {/* 👇 Add the new button here 👇 */}
+            <button type="button" className="generate-btn" onClick={handleGenerateTopic}>
+              ✨ Generate
+            </button>
           </div>
+        </div>
         </div>
 
         <div className="form-section">

@@ -51,7 +51,7 @@ function LandingPage({ onRoleSelect }) {
               <li>Control debate flow</li>
             </ul>
             <button className="role-btn btn-success">
-              Teacher Login
+              Volunteer Login
             </button>
           </div>
         </div>

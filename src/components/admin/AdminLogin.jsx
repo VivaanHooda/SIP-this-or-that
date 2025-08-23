@@ -86,7 +86,7 @@ function AdminLogin({ onAuth, onBack }) {
             <div className="title-icon">
               <Shield size={32} />
             </div>
-            <h2>Teacher Login</h2>
+            <h2>Volunteer Login</h2>
             <p>Access the admin dashboard to manage debate sessions</p>
           </div>
         </div>
@@ -161,7 +161,7 @@ function AdminLogin({ onAuth, onBack }) {
                   Authenticating...
                 </>
               ) : (
-                'Login as Teacher'
+                'Login as Voluneteer'
               )}
             </button>
           </div>
@@ -180,7 +180,7 @@ function AdminLogin({ onAuth, onBack }) {
           <div className="help-section">
             <h4>Need Help?</h4>
             <p>
-              Contact your school administrator to get an access code for teacher login.
+              Contact your administrator to get an access code for volunteer login.
             </p>
           </div>
         </div>
