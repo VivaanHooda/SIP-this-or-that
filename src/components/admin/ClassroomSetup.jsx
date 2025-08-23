@@ -10,7 +10,8 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
     topic: 'Is technology making us less social?'
   });
   const [password, setPassword] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
+  const [isGeneratingPassword, setIsGeneratingPassword] = useState(false);
+  const [isGeneratingTopic, setIsGeneratingTopic] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +28,7 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
   };
 
   const handleGeneratePassword = async () => {
-    setIsGenerating(true);
+    setIsGeneratingPassword(true);
     setError('');
     
     try {
@@ -38,18 +39,18 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
       setError('Failed to generate password. Please try again.');
       console.error('Password generation error:', error);
     } finally {
-      setIsGenerating(false);
+      setIsGeneratingPassword(false);
     }
   };
   const handleGenerateTopic = async () => {
-    setIsGenerating(true); 
+    setIsGeneratingTopic(true); 
     try {
       const topic = await generateDebateTopic();
       setFormData(prev => ({ ...prev, topic: topic }));
     } catch (error) {
       console.error("Failed to generate topic:", error);
     } finally {
-      setIsGenerating(false); 
+      setIsGeneratingTopic(false); 
     }
   };
 
@@ -170,8 +171,18 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
             />
             
             {/* 👇 Add the new button here 👇 */}
-            <button type="button" className="generate-btn" onClick={handleGenerateTopic}>
-              ✨ Generate
+            <button type="button" className="generate-btn" onClick={handleGenerateTopic} disabled={isGeneratingTopic}>
+            {isGeneratingTopic ? (
+                  <>
+                    <div className="loading-spinner small"></div>
+                    Generating...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw size={16} />
+                    ✨Generate Topic
+                  </>
+                )}
             </button>
           </div>
         </div>
@@ -187,9 +198,9 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
                 type="button"
                 className="generate-btn"
                 onClick={handleGeneratePassword}
-                disabled={isGenerating}
+                disabled={isGeneratingPassword}
               >
-                {isGenerating ? (
+                {isGeneratingPassword ? (
                   <>
                     <div className="loading-spinner small"></div>
                     Generating...
