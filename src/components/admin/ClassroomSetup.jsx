@@ -15,6 +15,7 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
   const [error, setError] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [copied, setCopied] = useState(false);
+  
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -41,8 +42,15 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
     }
   };
   const handleGenerateTopic = async () => {
-    const topic = await generateDebateTopic();
-    setFormData(prev => ({ ...prev, topic: topic }));
+    setIsGenerating(true); 
+    try {
+      const topic = await generateDebateTopic();
+      setFormData(prev => ({ ...prev, topic: topic }));
+    } catch (error) {
+      console.error("Failed to generate topic:", error);
+    } finally {
+      setIsGenerating(false); 
+    }
   };
 
   const handleCopyPassword = async () => {

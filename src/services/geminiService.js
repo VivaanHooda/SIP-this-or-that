@@ -235,15 +235,11 @@ const fallbackTopics = [
 
 export const generateDebateTopic = async () => {
   try {
-    const prompt = `Generate a single, engaging, and debatable topic suitable for college students.
-    The topic should be a question.
+    const prompt = `Generate a surprising and creative topic suitable for college students. Keep it funny! We are here to chill!
     Do not add any extra text, introduction, or quotation marks.
     No political or overly controversial topics. No topic to hurt the sentiments of any community.
-    Keep it concise (under 100 characters). Topics focusing on light-hearted subjects like social mdeia, pop culture, technology, movies, music, sports.
-    Keep in mind this is an ice-breaker debate topic for college students.
-    Examples:
-    - Streaming vs. Owning: Is it better to stream media (Netflix, Spotify) or own physical copies (Blu-rays, vinyl)?
-    - AI in Music: Should artists be allowed to use AI to create songs?`;
+    Keep it concise (under 100 characters). Topics focusing on light-hearted subjects like social mdeia, humour, pop culture, technology, movies, music, sports.
+    Keep in mind this is an ice-breaker debate topic for college students.`;
 
     const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
@@ -251,7 +247,7 @@ export const generateDebateTopic = async () => {
       body: JSON.stringify({
         contents: [{ parts: [{ text: prompt }] }],
         generationConfig: {
-          temperature: 0.9,
+          temperature: 1.0,
           maxOutputTokens: 100,
         },
       })

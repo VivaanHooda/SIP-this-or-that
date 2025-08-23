@@ -25,10 +25,7 @@ function AdminLogin({ onAuth, onBack }) {
       setError('Please enter your name');
       return false;
     }
-    if (!formData.schoolName.trim()) {
-      setError('Please enter your school/organization name');
-      return false;
-    }
+  
     if (!formData.accessCode.trim()) {
       setError('Please enter the admin access code');
       return false;
@@ -115,22 +112,6 @@ function AdminLogin({ onAuth, onBack }) {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="schoolName" className="form-label">
-              <Building size={16} />
-              School/Organization
-            </label>
-            <input
-              type="text"
-              id="schoolName"
-              name="schoolName"
-              className="form-input"
-              placeholder="e.g., Lincoln High School"
-              value={formData.schoolName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
 
           <div className="form-group">
             <label htmlFor="accessCode" className="form-label">
