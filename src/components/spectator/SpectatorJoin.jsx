@@ -87,7 +87,7 @@ function SpectatorJoin({ onJoin, onBack }) {
               <Users size={32} />
             </div>
             <h2>Join Debate Session</h2>
-            <p>Enter the password provided by your teacher to join the live debate</p>
+            <p>Enter the password provided by the volunteer to join the live debate</p>
           </div>
         </div>
 
@@ -101,21 +101,21 @@ function SpectatorJoin({ onJoin, onBack }) {
         <form onSubmit={handleSubmit} className="join-form">
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              <Key size={16} />
+              <Key size={18} />
               Session Password
             </label>
             <input
               type="text"
               id="password"
               className="password-input form-input"
-              placeholder="Enter session password (e.g., rhetoric42)"
+              placeholder="Enter session password :"
               value={password}
               onChange={handlePasswordChange}
               autoFocus
               required
             />
             <div className="input-help">
-              Ask your teacher for the session password
+              Ask the volunteer for the session password
             </div>
           </div>
 
