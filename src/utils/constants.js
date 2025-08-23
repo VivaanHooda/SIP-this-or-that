@@ -85,7 +85,7 @@ export const VALIDATION = {
 // Error Messages
 export const ERROR_MESSAGES = {
   NETWORK: 'Network error. Please check your connection.',
-  INVALID_PASSWORD: 'Invalid session password. Please check with your teacher.',
+  INVALID_PASSWORD: 'Invalid session password. Please check with the volunteer.',
   SESSION_EXPIRED: 'Your session has expired. Please rejoin.',
   ALREADY_VOTED: 'You have already voted in this round.',
   MISSING_CLASSROOM: 'Classroom ID is required.',

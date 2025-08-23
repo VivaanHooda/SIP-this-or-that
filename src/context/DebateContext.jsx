@@ -14,7 +14,9 @@ const initialState = {
   currentClassroom: null,
   isLoading: false,
   error: null,
-  hasVoted: false
+  hasVoted: false,
+  time: 60,
+  isTimerRunning: false
 };
 
 // Action types
@@ -28,6 +30,8 @@ const ACTIONS = {
   SET_DEBATE_STARTED: 'SET_DEBATE_STARTED',
   SET_CLASSROOM: 'SET_CLASSROOM',
   SET_HAS_VOTED: 'SET_HAS_VOTED',
+  SET_TIMER_STATE: 'SET_TIMER_STATE',
+  SET_TIME: 'SET_TIME',
   UPDATE_DEBATE_DATA: 'UPDATE_DEBATE_DATA',
   RESET_STATE: 'RESET_STATE'
 };
@@ -66,6 +70,14 @@ function debateReducer(state, action) {
       };
     case ACTIONS.RESET_STATE:
       return { ...initialState };
+    case ACTIONS.SET_TIMER_STATE:
+      return { 
+        ...state, 
+        timer: action.payload.timer, 
+        isTimerRunning: action.payload.isTimerRunning 
+      };
+    case ACTIONS.SET_TIME:
+      return { ...state, timer: action.payload };
     default:
       return state;
   }
@@ -87,7 +99,10 @@ export function DebateProvider({ children }) {
             topic: debateData.topic,
             votes: debateData.votes || state.votes,
             speakingFor: debateData.speakingFor,
-            debateStarted: debateData.debateStarted
+            debateStarted: debateData.debateStarted,
+            timer: debateData.timer || 60,
+            isTimerRunning: debateData.isTimerRunning || false 
+            
           }
         });
       }
@@ -122,7 +137,9 @@ export function DebateProvider({ children }) {
     setDebateStarted: (started) => dispatch({ type: ACTIONS.SET_DEBATE_STARTED, payload: started }),
     setClassroom: (classroom) => dispatch({ type: ACTIONS.SET_CLASSROOM, payload: classroom }),
     setHasVoted: (voted) => dispatch({ type: ACTIONS.SET_HAS_VOTED, payload: voted }),
-    resetState: () => dispatch({ type: ACTIONS.RESET_STATE })
+    resetState: () => dispatch({ type: ACTIONS.RESET_STATE }),
+    setTimerState: (timerState) => dispatch({ type: ACTIONS.SET_TIMER_STATE, payload: timerState }),
+    setTime: (time) => dispatch({ type: ACTIONS.SET_TIME, payload: time })
   };
 
   const value = {

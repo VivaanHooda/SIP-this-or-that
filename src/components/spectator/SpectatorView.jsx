@@ -3,6 +3,7 @@ import { Users, Vote, Clock, Trophy, AlertCircle, User, Hash } from 'lucide-reac
 import { useDebate } from '../../context/DebateContext';
 import { submitVote, getDebateData, getTeams } from '../../services/debateService';
 import VotePanel from './VotePanel';
+import TimerDisplay from './TimerDisplay';
 import './SpectatorView.css';
 
 function SpectatorView({ classroom, student }) {
@@ -170,6 +171,7 @@ function SpectatorView({ classroom, student }) {
           <p className="topic-text">{state.topic}</p>
         </div>
       </div>
+      {state.debateStarted && <TimerDisplay />}
 
       {/* Teams Overview */}
       <div className="teams-overview">
@@ -248,7 +250,7 @@ function SpectatorView({ classroom, student }) {
           <div className="waiting-content">
             <Clock size={48} className="waiting-icon" />
             <h3>Waiting for Debate to Start</h3>
-            <p>Your teacher will start the debate session when ready. Please wait...</p>
+            <p>The volunteer will start the debate session when ready. Please wait...</p>
             
             {getMyTeam() && (
               <div className="my-team-waiting">

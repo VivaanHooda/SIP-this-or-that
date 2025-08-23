@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Settings, Users, Play, RotateCcw, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { useDebate } from '../../context/DebateContext';
+import { updateTimer } from '../../services/debateService';
+import TimerDisplay from '../spectator/TimerDisplay';
 import {
   createClassroom,
   generateDebatePassword,
-  updateClassroom
+  updateClassroom,
+  generateDebateTopic
 } from '../../services/geminiService';
 import {
   updateTopic,
@@ -16,8 +19,10 @@ import {
   clearAllTeams,
   getClassroomStudents
 } from '../../services/debateService';
+
 import ClassroomSetup from './ClassroomSetup';
 import './AdminDashboard.css';
+
 
 function AdminDashboard() {
   const { state, actions } = useDebate();
@@ -26,6 +31,7 @@ function AdminDashboard() {
   const [newTopic, setNewTopic] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [students, setStudents] = useState([]);
+  const [timerMinutes, setTimerMinutes] = useState(5);
 
   // Load saved classroom on mount
   useEffect(() => {
@@ -156,6 +162,36 @@ function AdminDashboard() {
     localStorage.removeItem('currentClassroom');
     setView('setup');
   };
+  const handleTimerStart = async () => {
+    if (!activeClassroom) return;
+  
+    const timeInSeconds = timerMinutes * 60;
+  
+    await updateTimer(activeClassroom.id, timeInSeconds, true);
+  };
+  
+
+  const handleTimerPause = async () => {
+    if (!activeClassroom) return;
+    await updateTimer(activeClassroom.id, state.timer, false); // Pause at current time
+  };
+
+  const handleTimerReset = async () => {
+    if (!activeClassroom) return;
+    await updateTimer(activeClassroom.id, 300, false); // Reset to 5 mins, paused
+  };
+  const handleGenerateTopic = async () => {
+    try {
+      actions.setLoading(true); // Show a loading indicator
+      const topic = await generateDebateTopic();
+      setNewTopic(topic); // Set the returned topic into the input field's state
+    } catch (error) {
+      console.error("Failed to generate topic:", error);
+      actions.setError("Could not generate a topic right now.");
+    } finally {
+      actions.setLoading(false);
+    }
+  };
 
   if (state.isLoading) {
     return (
@@ -236,10 +272,21 @@ function AdminDashboard() {
               value={newTopic}
               onChange={(e) => setNewTopic(e.target.value)}
             />
+           
+            <button type="button" className="btn-secondary" onClick={handleGenerateTopic}>
+              ✨ Generate Topic
+            </button>
+
             <button type="submit" className="btn-primary" disabled={!newTopic.trim()}>
               Update Topic
             </button>
           </form>
+          <div className="team-info">
+            <p className="team-description">
+              Enter a custom topic or use the AI-generated suggestion.
+              
+            </p>
+          </div>
         </div>
 
         {/* Student Management - Auto-Assigned Teams */}
@@ -332,7 +379,7 @@ function AdminDashboard() {
         {/* Debate Control */}
         <div className="debate-control card">
           <h3>Debate Control</h3>
-          
+          {state.debateStarted && <TimerDisplay />}
           {!state.debateStarted ? (
             <div className="start-section">
               <p>Ready to begin the debate?</p>
@@ -380,6 +427,21 @@ function AdminDashboard() {
                 <RotateCcw size={16} />
                 Force Switch Sides
               </button>
+              <div className="timer-controls">
+              <div className="timer-input-group">
+                <label htmlFor="timer-minutes">Set Time (min):</label>
+                  <input
+                    type="number"
+                    id="timer-minutes"
+                    value={timerMinutes}
+                    onChange={(e) => setTimerMinutes(Number(e.target.value))}
+                    className="timer-input"
+                  />
+                </div>
+                <button onClick={handleTimerStart} className="btn-primary">Start Timer</button>
+                <button onClick={handleTimerPause} className="btn-secondary">Pause Timer</button>
+                <button onClick={handleTimerReset} className="btn-danger">Reset Timer</button>
+              </div>
             </div>
           )}
         </div>

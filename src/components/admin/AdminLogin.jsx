@@ -25,10 +25,7 @@ function AdminLogin({ onAuth, onBack }) {
       setError('Please enter your name');
       return false;
     }
-    if (!formData.schoolName.trim()) {
-      setError('Please enter your school/organization name');
-      return false;
-    }
+  
     if (!formData.accessCode.trim()) {
       setError('Please enter the admin access code');
       return false;
@@ -50,7 +47,7 @@ function AdminLogin({ onAuth, onBack }) {
       const validCodes = ['TEACHER2024', 'ADMIN123', 'EDUCATOR'];
       
       if (!validCodes.includes(formData.accessCode.toUpperCase())) {
-        setError('Invalid access code. Please check with your administrator.');
+        setError('Invalid access code. Please check with the core committee members.');
         return;
       }
 
@@ -86,7 +83,7 @@ function AdminLogin({ onAuth, onBack }) {
             <div className="title-icon">
               <Shield size={32} />
             </div>
-            <h2>Teacher Login</h2>
+            <h2>Volunteer Login</h2>
             <p>Access the admin dashboard to manage debate sessions</p>
           </div>
         </div>
@@ -115,22 +112,6 @@ function AdminLogin({ onAuth, onBack }) {
             />
           </div>
 
-          <div className="form-group">
-            <label htmlFor="schoolName" className="form-label">
-              <Building size={16} />
-              School/Organization
-            </label>
-            <input
-              type="text"
-              id="schoolName"
-              name="schoolName"
-              className="form-input"
-              placeholder="e.g., Lincoln High School"
-              value={formData.schoolName}
-              onChange={handleInputChange}
-              required
-            />
-          </div>
 
           <div className="form-group">
             <label htmlFor="accessCode" className="form-label">
@@ -161,7 +142,7 @@ function AdminLogin({ onAuth, onBack }) {
                   Authenticating...
                 </>
               ) : (
-                'Login as Teacher'
+                'Login as Volunteer'
               )}
             </button>
           </div>
@@ -180,7 +161,7 @@ function AdminLogin({ onAuth, onBack }) {
           <div className="help-section">
             <h4>Need Help?</h4>
             <p>
-              Contact your school administrator to get an access code for teacher login.
+              Contact the core committee to get an access code for volunteer login.
             </p>
           </div>
         </div>
