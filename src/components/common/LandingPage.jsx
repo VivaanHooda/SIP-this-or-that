@@ -31,7 +31,7 @@ function LandingPage({ onRoleSelect }) {
               <li>See live vote counts</li>
             </ul>
             <button className="role-btn btn-primary">
-              Join Debate Session
+              Join Debate Session !
             </button>
           </div>
 
@@ -40,7 +40,7 @@ function LandingPage({ onRoleSelect }) {
             <div className="card-icon">
               <UserCheck size={48} />
             </div>
-            <h3>Login as Teacher</h3>
+            <h3>Login as Volunteer</h3>
             <p>
               Create and manage debate sessions, organize teams, and moderate discussions
             </p>

@@ -2,10 +2,12 @@
 .student-registration {
   min-height: 100vh;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
   padding: 20px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #1e1e2f, #2a2a40); /* same dark gradient */
+  color: #ffffff; /* global white text */
 }
 
 .registration-container {
@@ -20,7 +22,7 @@
 .registration-header {
   position: relative;
   padding: 30px 30px 0;
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+  background: linear-gradient(135deg, #1e1e2f, #2a2a40);
   color: white;
 }
 
@@ -65,7 +67,9 @@
   opacity: 0.9;
   font-size: 1.1rem;
 }
-
+.registration-info{
+  background: linear-gradient(135deg, #1e1e2f, #2a2a40);
+}
 .classroom-info {
   margin-top: 15px;
   padding: 10px;
@@ -81,6 +85,7 @@
 
 .registration-form {
   padding: 30px;
+  background: linear-gradient(135deg, #1e1e2f, #2a2a40);
 }
 
 .form-group {
@@ -155,7 +160,12 @@
 .loading-spinner {
   animation: spin 1s linear infinite;
 }
-
+h4 {
+  margin: 0 0 15px 0;
+  color: #ffffff;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
 @keyframes spin {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
@@ -163,16 +173,17 @@
 
 .registration-info {
   padding: 0 30px 30px;
-  background: #f8fafc;
+  color: #c53030;
+
 }
 
 .info-section {
   margin-bottom: 25px;
 }
 
-.info-section h4 {
+.registration-info.info-section h4 {
   margin: 0 0 15px 0;
-  color: #2d3748;
+  color: #fcfcfc;
   font-weight: 600;
   font-size: 1.1rem;
 }
@@ -206,12 +217,12 @@
 .step-content h4 {
   margin: 0 0 5px 0;
   font-weight: 600;
-  color: #2d3748;
+  color: #ffffff;
 }
 
 .step-content p {
   margin: 0;
-  color: #64748b;
+  color: #ffffff;
   font-size: 0.9rem;
   line-height: 1.4;
 }
@@ -238,8 +249,11 @@
 
 .info-list li:before {
   content: "•";
-  color: #667eea;
+  color: #ffffff;
   font-weight: bold;
+}
+.info-list li{
+  color: #ffffff;
 }
 
 .error-message {
@@ -274,6 +288,7 @@
   
   .registration-form {
     padding: 20px;
+    background: linear-gradient(135deg, #1e1e2f, #2a2a40);
   }
   
   .registration-info {

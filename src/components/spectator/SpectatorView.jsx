@@ -250,7 +250,7 @@ function SpectatorView({ classroom, student }) {
           <div className="waiting-content">
             <Clock size={48} className="waiting-icon" />
             <h3>Waiting for Debate to Start</h3>
-            <p>Your teacher will start the debate session when ready. Please wait...</p>
+            <p>The volunteer will start the debate session when ready. Please wait...</p>
             
             {getMyTeam() && (
               <div className="my-team-waiting">

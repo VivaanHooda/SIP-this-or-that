@@ -31,7 +31,7 @@ function SpectatorJoin({ onJoin, onBack }) {
       const foundClassroom = await getClassroomByPassword(password.trim());
       
       if (!foundClassroom) {
-        setError('Invalid session password. Please check with your teacher.');
+        setError('Invalid session password. Please check with the volunteer.');
         return;
       }
 
@@ -87,7 +87,7 @@ function SpectatorJoin({ onJoin, onBack }) {
               <Users size={32} />
             </div>
             <h2>Join Debate Session</h2>
-            <p>Enter the password provided by your teacher to join the live debate</p>
+            <p>Enter the password provided by the volunteer to join the live debate</p>
           </div>
         </div>
 
@@ -101,21 +101,21 @@ function SpectatorJoin({ onJoin, onBack }) {
         <form onSubmit={handleSubmit} className="join-form">
           <div className="form-group">
             <label htmlFor="password" className="form-label">
-              <Key size={16} />
+              <Key size={18} />
               Session Password
             </label>
             <input
               type="text"
               id="password"
               className="password-input form-input"
-              placeholder="Enter session password (e.g., rhetoric42)"
+              placeholder="Enter session password :"
               value={password}
               onChange={handlePasswordChange}
               autoFocus
               required
             />
             <div className="input-help">
-              Ask your teacher for the session password
+              Ask the volunteer for the session password
             </div>
           </div>
 
@@ -148,7 +148,7 @@ function SpectatorJoin({ onJoin, onBack }) {
                 <div className="step-number">1</div>
                 <div className="step-content">
                   <strong>Get Password</strong>
-                  <p>Your teacher will provide a unique session password</p>
+                  <p>The Volunteer will provide a unique session password</p>
                 </div>
               </div>
               <div className="help-step">
@@ -182,7 +182,7 @@ function SpectatorJoin({ onJoin, onBack }) {
               <li>View live debate topics and discussions</li>
               <li>Vote on whether teams should switch sides</li>
               <li>See real-time vote counts and participation</li>
-              <li>Your teacher can see your engagement</li>
+              <li>The volunteer can see your engagement</li>
             </ul>
           </div>
         </div>

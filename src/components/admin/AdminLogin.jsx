@@ -50,7 +50,7 @@ function AdminLogin({ onAuth, onBack }) {
       const validCodes = ['TEACHER2024', 'ADMIN123', 'EDUCATOR'];
       
       if (!validCodes.includes(formData.accessCode.toUpperCase())) {
-        setError('Invalid access code. Please check with your administrator.');
+        setError('Invalid access code. Please check with the core committee members.');
         return;
       }
 
@@ -161,7 +161,7 @@ function AdminLogin({ onAuth, onBack }) {
                   Authenticating...
                 </>
               ) : (
-                'Login as Voluneteer'
+                'Login as Volunteer'
               )}
             </button>
           </div>
@@ -180,7 +180,7 @@ function AdminLogin({ onAuth, onBack }) {
           <div className="help-section">
             <h4>Need Help?</h4>
             <p>
-              Contact your administrator to get an access code for volunteer login.
+              Contact the core committee to get an access code for volunteer login.
             </p>
           </div>
         </div>
