@@ -50,7 +50,7 @@ function AdminLogin({ onAuth, onBack }) {
       const validCodes = ['TEACHER2024', 'ADMIN123', 'EDUCATOR'];
       
       if (!validCodes.includes(formData.accessCode.toUpperCase())) {
-        setError('Invalid access code. Please check with your administrator.');
+        setError('Invalid access code. Please check with the core committee members.');
         return;
       }
 
