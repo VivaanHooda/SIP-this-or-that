@@ -1,0 +1,16 @@
+.timer-display {
+    text-align: center;
+    padding: 20px;
+  }
+  .timer-display .time {
+    font-size: 3rem;
+    font-weight: bold;
+    margin: 10px 0;
+    font-family: monospace;
+  }
+  .timer-display .status.running {
+    color: #28a745; /* Green */
+  }
+  .timer-display .status.paused {
+    color: #dc3545; /* Red */
+  }
