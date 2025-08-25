@@ -1,6 +1,7 @@
 import { db } from './firebase';
 import { 
   doc, 
+  addDoc,
   getDoc, 
   setDoc,
   onSnapshot,
@@ -27,66 +28,6 @@ const handleFirebaseError = (error, operation) => {
   }
   
   throw error;
-};
-
-// Get current debate data for a classroom
-export const getDebateData = async (classroomId) => {
-  try {
-    const debateRef = doc(db, 'debate', classroomId || 'current');
-    const debateSnap = await getDoc(debateRef);
-    
-    if (debateSnap.exists()) {
-      return debateSnap.data();
-    } else {
-      // Create default debate data if it doesn't exist
-      const defaultData = {
-        topic: "Is technology making us less social?",
-        debateStarted: false,
-        speakingFor: 'A',
-        votes: { switch: 0, dontSwitch: 0 },
-        lastUpdated: new Date().toISOString()
-      };
-      
-      // Try to create the document
-      try {
-        await setDoc(debateRef, defaultData);
-      } catch (setError) {
-        console.warn('Could not create default debate data:', setError);
-      }
-      
-      return defaultData;
-    }
-  } catch (error) {
-    handleFirebaseError(error, 'getDebateData');
-  }
-};
-
-// Listen to real-time debate updates
-export const subscribeToDebate = (classroomId, callback) => {
-  const debateRef = doc(db, 'debate', classroomId || 'current');
-  
-  return onSnapshot(debateRef, (doc) => {
-    if (doc.exists()) {
-      callback(doc.data());
-    } else {
-      // Provide default data if document doesn't exist
-      callback({
-        topic: "Is technology making us less social?",
-        debateStarted: false,
-        speakingFor: 'A',
-        votes: { switch: 0, dontSwitch: 0 }
-      });
-    }
-  }, (error) => {
-    console.error('Error listening to debate:', error);
-    // Call callback with default data on error
-    callback({
-      topic: "Is technology making us less social?",
-      debateStarted: false,
-      speakingFor: 'A',
-      votes: { switch: 0, dontSwitch: 0 }
-    });
-  });
 };
 
 // Get teams for a classroom
@@ -271,65 +212,67 @@ export const getClassroomStudents = async (classroomId) => {
 };
 
 // Update debate topic (Admin only)
-export const updateTopic = async (classroomId, newTopic) => {
+export const updateTopicInGame = async (classroomId, gameId, newTopic) => {
   try {
-    if (!classroomId || !newTopic) {
-      throw new Error('Classroom ID and topic are required');
+    if (!classroomId || !gameId || !newTopic) {
+      throw new Error('Classroom ID, Game ID, and topic are required');
     }
     
-    const debateRef = doc(db, 'debate', classroomId);
-    await updateDoc(debateRef, {
+    const gameDocRef = doc(db, 'classrooms', classroomId, 'games', gameId);
+    
+    await updateDoc(gameDocRef, {
       topic: newTopic,
       lastUpdated: new Date().toISOString()
     });
     return true;
   } catch (error) {
-    handleFirebaseError(error, 'updateTopic');
+    handleFirebaseError(error, 'updateTopicInGame');
   }
 };
 
 // Start debate (Admin only)
-export const startDebate = async (classroomId) => {
+// Corrected version
+export const startGame = async (classroomId, gameId) => { // 👈 gameId was missing
   try {
-    if (!classroomId) {
-      throw new Error('Classroom ID is required');
+    if (!classroomId || !gameId) {
+      throw new Error('Classroom ID and Game ID are required');
     }
     
-    const debateRef = doc(db, 'debate', classroomId);
-    await updateDoc(debateRef, {
-      debateStarted: true,
-      votes: { switch: 0, dontSwitch: 0 }, // Reset votes when starting
+    const gameDocRef = doc(db, 'classrooms', classroomId, 'games', gameId);
+    
+    await updateDoc(gameDocRef, {
+      status: 'live',
+      votes: { switch: 0, dontSwitch: 0 },
       lastUpdated: new Date().toISOString()
     });
     return true;
   } catch (error) {
-    handleFirebaseError(error, 'startDebate');
+    handleFirebaseError(error, 'startGame');
   }
 };
-
 // Switch sides (Admin only)
-export const switchSides = async (classroomId) => {
+export const switchSidesInGame = async (classroomId,gameId) => {
   try {
-    if (!classroomId) {
+    if (!classroomId || !gameId) {
       throw new Error('Classroom ID is required');
     }
     
-    const debateRef = doc(db, 'debate', classroomId);
-    const debateSnap = await getDoc(debateRef);
+    const gameDocRef = doc(db, 'classrooms', classroomId, 'games', gameId);
+    const gameSnap = await getDoc(gameDocRef);
     
-    if (debateSnap.exists()) {
-      const currentData = debateSnap.data();
+    if (gameSnap.exists()) {
+      const currentData = gameSnap.data();
       const newSpeakingFor = currentData.speakingFor === 'A' ? 'B' : 'A';
       
-      await updateDoc(debateRef, {
+      await updateDoc(gameDocRef, {
         speakingFor: newSpeakingFor,
-        votes: { switch: 0, dontSwitch: 0 }, // Reset votes when switching
+        votes: { switch: 0, dontSwitch: 0 }, // Reset votes on switch
         lastUpdated: new Date().toISOString()
       });
     }
     return true;
   } catch (error) {
-    handleFirebaseError(error, 'switchSides');
+    handleFirebaseError(error, 'switchSidesInGame');
   }
 };
 
@@ -438,31 +381,30 @@ export const clearAllTeams = async (classroomId) => {
 };
 
 // Submit a vote (Spectator only)
-export const submitVote = async (classroomId, voteType) => {
+// New, refactored version
+export const submitVoteInGame = async (classroomId, gameId, voteType) => {
   try {
-    if (!classroomId || !voteType) {
-      throw new Error('Classroom ID and vote type are required');
+    if (!classroomId || !gameId || !voteType) {
+      throw new Error('Classroom ID, Game ID, and vote type are required');
     }
     
     if (!['switch', 'dontSwitch'].includes(voteType)) {
       throw new Error('Invalid vote type');
     }
     
-    const debateRef = doc(db, 'debate', classroomId);
+    const gameDocRef = doc(db, 'classrooms', classroomId, 'games', gameId);
     
     // Use Firestore's increment function for atomic updates
-    await updateDoc(debateRef, {
+    await updateDoc(gameDocRef, {
       [`votes.${voteType}`]: increment(1),
       lastUpdated: new Date().toISOString()
     });
     
-    console.log('Vote submitted successfully:', voteType);
     return true;
   } catch (error) {
-    handleFirebaseError(error, 'submitVote');
+    handleFirebaseError(error, 'submitVoteInGame');
   }
 };
-
 // Get classroom by password
 export const getClassroomByPassword = async (password) => {
   try {
@@ -547,16 +489,83 @@ export const listenToVotes = (roomKey, callback) => {
     callback({}); // Call callback with empty object on error
   });
 };
-export const updateTimer = async (classroomId, newTime, isRunning) => {
+// New, refactored version
+export const updateTimerInGame = async (classroomId, gameId, newTime, isRunning) => {
   try {
-    const debateRef = doc(db, 'debate', classroomId);
-    await updateDoc(debateRef, {
+    if (!classroomId || !gameId) {
+      throw new Error('Classroom ID and Game ID are required');
+    }
+    
+    const gameDocRef = doc(db, 'classrooms', classroomId, 'games', gameId);
+    
+    await updateDoc(gameDocRef, {
       timer: newTime,
       isTimerRunning: isRunning,
       lastUpdated: new Date().toISOString()
     });
     return true;
   } catch (error) {
-    handleFirebaseError(error, 'updateTimer');
+    handleFirebaseError(error, 'updateTimerInGame');
+  }
+};
+export const createGame = async (classroomId, gameData) => {
+  try {
+    if (!classroomId || !gameData) {
+      throw new Error('Classroom ID and game data are required.');
+    }
+
+    // This creates a reference to the new "games" subcollection
+    const gamesCollectionRef = collection(db, 'classrooms', classroomId, 'games');
+
+    const newGame = {
+      gameName: gameData.gameName || 'New Game',
+      topic: gameData.topic || 'Topic to be decided.',
+      teamAPlayers: gameData.teamAPlayers || [],
+      teamBPlayers: gameData.teamBPlayers || [],
+      status: 'waiting', // "waiting", "live", "finished"
+      votes: { switch: 0, dontSwitch: 0 },
+      timer: 300,
+      isTimerRunning: false,
+      speakingFor: 'A',
+      createdAt: new Date().toISOString()
+    };
+
+    // This adds a new document to the "games" subcollection with an auto-generated ID
+    const docRef = await addDoc(gamesCollectionRef, newGame);
+
+    return { id: docRef.id, ...newGame }; // Return the new game with its ID
+  } catch (error) {
+    handleFirebaseError(error, 'createGame');
+  }
+};
+export const subscribeToGamesList = (classroomId, callback) => {
+  try {
+    const gamesCollectionRef = collection(db, 'classrooms', classroomId, 'games');
+    
+    // onSnapshot listens for any changes in the collection
+    return onSnapshot(gamesCollectionRef, (querySnapshot) => {
+      const games = [];
+      querySnapshot.forEach((doc) => {
+        games.push({ id: doc.id, ...doc.data() });
+      });
+      callback(games); // Send the updated list of games to the app
+    });
+  } catch (error) {
+    console.error("Error subscribing to games list:", error);
+    return () => {}; // Return an empty unsubscribe function on error
+  }
+};
+export const deleteGame = async (classroomId, gameId) => {
+  try {
+    if (!classroomId || !gameId) {
+      throw new Error('Classroom ID and Game ID are required.');
+    }
+    
+    const gameDocRef = doc(db, 'classrooms', classroomId, 'games', gameId);
+    await deleteDoc(gameDocRef);
+    
+    return true;
+  } catch (error) {
+    handleFirebaseError(error, 'deleteGame');
   }
 };

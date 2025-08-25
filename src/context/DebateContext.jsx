@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { subscribeToDebate, subscribeToTeams } from '../services/debateService';
+import { subscribeToGamesList, subscribeToTeams } from '../services/debateService';
 
 const DebateContext = createContext();
 
@@ -91,24 +91,34 @@ export function DebateProvider({ children }) {
   // Subscribe to real-time updates when classroom is set
   useEffect(() => {
     if (!state.currentClassroom?.id) return;
-
-    const unsubscribeDebate = subscribeToDebate(state.currentClassroom.id, (debateData) => {
-      if (debateData) {
+  
+    // This new listener gets the whole list of games
+    const unsubscribeGames = subscribeToGamesList(state.currentClassroom.id, (gamesList) => {
+      // Find the one game that the admin has set to "live"
+      const liveGame = gamesList.find(game => game.status === 'live');
+  
+      if (liveGame) {
+        // If a live game is found, update the context with its data
         dispatch({
           type: ACTIONS.UPDATE_DEBATE_DATA,
           payload: {
-            topic: debateData.topic,
-            votes: debateData.votes || state.votes,
-            speakingFor: debateData.speakingFor,
-            debateStarted: debateData.debateStarted,
-            timer: debateData.timer || 60,
-            isTimerRunning: debateData.isTimerRunning || false 
-            
+            topic: liveGame.topic,
+            votes: liveGame.votes || { switch: 0, dontSwitch: 0 },
+            speakingFor: liveGame.speakingFor,
+            debateStarted: true,
+            timer: liveGame.timer,
+            isTimerRunning: liveGame.isTimerRunning,
+            activePlayers: {
+              teamA: liveGame.teamAPlayers || [],
+              teamB: liveGame.teamBPlayers || [],
+            }
           }
         });
+      } else {
+        // If no game is live, reset to the "waiting" state
+        dispatch({ type: ACTIONS.SET_DEBATE_STARTED, payload: false });
       }
     });
-
     const unsubscribeTeams = subscribeToTeams(state.currentClassroom.id, (teamsData) => {
       if (teamsData) {
         dispatch({
@@ -122,7 +132,7 @@ export function DebateProvider({ children }) {
     });
 
     return () => {
-      unsubscribeDebate();
+      unsubscribeGames();
       unsubscribeTeams();
     };
   }, [state.currentClassroom?.id]);

@@ -2,7 +2,6 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Settings, Users, Play, RotateCcw, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { useDebate } from '../../context/DebateContext';
-import { updateTimer } from '../../services/debateService';
 import TimerDisplay from '../spectator/TimerDisplay';
 import {
   createClassroom,
@@ -11,16 +10,17 @@ import {
   generateDebateTopic
 } from '../../services/geminiService';
 import {
-  updateTopic,
-  startDebate,
-  switchSides,
-  getDebateData,
-  getTeams,
+  updateTimerInGame,
+  subscribeToGamesList,
+  createGame,
+  startGame,
   removeStudentFromTeam,
   clearAllTeams,
-  getClassroomStudents
+  updateTopicInGame,
+  deleteGame,
+  switchSidesInGame
 } from '../../services/debateService';
-
+import CreateGameModal from './CreateGameModal';
 import ClassroomSetup from './ClassroomSetup';
 import './AdminDashboard.css';
 
@@ -35,6 +35,10 @@ function AdminDashboard() {
   const [showPassword, setShowPassword] = useState(false);
   const [students, setStudents] = useState([]);
   const [timerMinutes, setTimerMinutes] = useState(5);
+  const [games, setGames] = useState([]);
+  const [activeGameId, setActiveGameId] = useState(null);
+  const [isCreateGameModalOpen, setIsCreateGameModalOpen] = useState(false);
+  const [activeGame,setActiveGame] = useState(null);
 
   useEffect(() => {
     setIsClient(true);
@@ -46,39 +50,22 @@ function AdminDashboard() {
       setActiveClassroom(classroom);
       actions.setClassroom(classroom);
       setView('classroom');
-      loadClassroomData(classroom.id);
+      
     }
   }, []);
+  useEffect(() => {
+    if (!activeClassroom?.id) return;
+  
+    // Subscribe to the list of games for this classroom
+    const unsubscribe = subscribeToGamesList(activeClassroom.id, (gamesList) => {
+      setGames(gamesList);
+    });
+  
+    // Clean up the subscription when the component unmounts
+    return () => unsubscribe();
+  }, [activeClassroom?.id]);
 
-  const loadClassroomData = async (classroomId) => {
-    try {
-      actions.setLoading(true);
-      
-      const [debateData, teamsData, studentsData] = await Promise.all([
-        getDebateData(classroomId),
-        getTeams(classroomId),
-        getClassroomStudents(classroomId)
-      ]);
-
-      if (debateData) {
-        actions.setTopic(debateData.topic);
-        actions.setVotes(debateData.votes || { switch: 0, dontSwitch: 0 });
-        actions.setSpeakingFor(debateData.speakingFor || 'A');
-        actions.setDebateStarted(debateData.debateStarted || false);
-      }
-
-      if (teamsData) {
-        actions.setTeams(teamsData);
-      }
-
-      setStudents(studentsData || []);
-      actions.setLoading(false);
-    } catch (error) {
-      console.error('Error loading classroom data:', error);
-      actions.setError('Failed to load classroom data');
-    }
-  };
-
+  
   const handleCreateClassroom = async (classroomData) => {
     try {
       actions.setLoading(true);
@@ -89,7 +76,7 @@ function AdminDashboard() {
       localStorage.setItem('currentClassroom', JSON.stringify(classroom));
       
       setView('classroom');
-      await loadClassroomData(classroom.id);
+      
     } catch (error) {
       console.error('Error creating classroom:', error);
       actions.setError('Failed to create classroom');
@@ -97,39 +84,37 @@ function AdminDashboard() {
   };
 
   const handleUpdateTopic = async () => {
-    if (!newTopic.trim() || !activeClassroom) return;
-    
+    if (!newTopic.trim() || !activeClassroom || !activeGameId) return;
+  
     try {
-      await updateTopic(activeClassroom.id, newTopic.trim());
-      actions.setTopic(newTopic.trim());
+      await updateTopicInGame(activeClassroom.id, activeGameId, newTopic.trim());
       setNewTopic('');
     } catch (error) {
       console.error('Error updating topic:', error);
       actions.setError('Failed to update topic');
     }
   };
-
-  const handleStartDebate = async () => {
-    if (!activeClassroom) return;
+  const handleStartGame = async () => {
+    // Check if a game is selected
+    if (!activeClassroom || !activeGameId) return;
     
     try {
-      await startDebate(activeClassroom.id);
-      actions.setDebateStarted(true);
-      actions.setVotes({ switch: 0, dontSwitch: 0 });
+      // Call the new service function with the active game's ID
+      await startGame(activeClassroom.id, activeGameId);
+      // No need to set state here, the listener will update the UI
     } catch (error) {
-      console.error('Error starting debate:', error);
-      actions.setError('Failed to start debate');
+      console.error('Error starting game:', error);
+      actions.setError('Failed to start the selected game');
     }
   };
-
   const handleSwitchSides = async () => {
-    if (!activeClassroom) return;
+    // Check if a game is selected
+    if (!activeClassroom || !activeGameId) return;
     
     try {
-      await switchSides(activeClassroom.id);
-      const newSide = state.speakingFor === 'A' ? 'B' : 'A';
-      actions.setSpeakingFor(newSide);
-      actions.setVotes({ switch: 0, dontSwitch: 0 });
+      // Call the new service function with the active game's ID
+      await switchSidesInGame(activeClassroom.id, activeGameId);
+      // No need to set state here, the listener will update the UI
     } catch (error) {
       console.error('Error switching sides:', error);
       actions.setError('Failed to switch sides');
@@ -141,7 +126,6 @@ function AdminDashboard() {
     
     try {
       await removeStudentFromTeam(activeClassroom.id, admissionNumber);
-      await loadClassroomData(activeClassroom.id); // Refresh data
     } catch (error) {
       console.error('Error removing student:', error);
       actions.setError('Failed to remove student');
@@ -153,7 +137,6 @@ function AdminDashboard() {
 
     try {
       await clearAllTeams(activeClassroom.id);
-      await loadClassroomData(activeClassroom.id); // Refresh data
     } catch (error) {
       console.error('Error clearing teams:', error);
       actions.setError('Failed to clear teams');
@@ -168,30 +151,93 @@ function AdminDashboard() {
     setView('setup');
   };
   const handleTimerStart = async () => {
+    // Check if a game is selected
+    if (!activeClassroom || !activeGameId) return;
+  
+    try {
+      // Convert minutes from the input field to seconds
+      const timeInSeconds = timerMinutes * 60;
+      // Call the new service function with the active game's ID
+      await updateTimerInGame(activeClassroom.id, activeGameId, timeInSeconds, true);
+    } catch (error) {
+      console.error('Error starting timer:', error);
+      actions.setError('Failed to start the timer.');
+    }
+  };
+  const handleTimerReset = async() => {
+    if (!activeClassroom || !activeGameId) return;
+    try {
+      const timeInSeconds = timerMinutes * 60;
+      await updateTimerInGame(activeClassroom.id, activeGameId, timeInSeconds, false);
+    }
+    catch(error){
+    console.error('Error resetting timer:',error);
+    actions.setError('Failed to reset the timer');
+  }
+};
+  
+  const handleCreateGame = async (gameData) => {
     if (!activeClassroom) return;
   
-    const timeInSeconds = timerMinutes * 60;
-  
-    await updateTimer(activeClassroom.id, timeInSeconds, true);
+    try {
+      // Call the service function to create the game in Firestore
+      await createGame(activeClassroom.id, gameData);
+      setIsCreateGameModalOpen(false); // Close the modal on success
+    } catch (error) {
+      console.error('Error creating game:', error);
+      actions.setError('Failed to create the new game.');
+    }
   };
-  
+  const handleSelectGame = (game) => {
+    setActiveGameId(game.id);
+    setActiveGame(game);
+    // Also, update the topic input field to show the selected game's topic
+    setNewTopic(game.topic); 
+  };
 
   const handleTimerPause = async () => {
-    if (!activeClassroom) return;
-    await updateTimer(activeClassroom.id, state.timer, false); // Pause at current time
-  };
-
-  const handleTimerReset = async () => {
-    if (!activeClassroom) return;
-    await updateTimer(activeClassroom.id, 300, false); // Reset to 5 mins, paused
+    if (!activeClassroom || !activeGameId || !activeGame) return;
+  
+    try {
+      await updateTimerInGame(activeClassroom.id, activeGameId, activeGame.timer, false);
+    } catch (error) {
+      console.error('Error pausing timer:', error);
+      actions.setError('Failed to pause the timer.');
+    }
   };
   const handleGenerateTopic = async () => {
+    // Ensure a game is selected before generating a topic for it
+    if (!activeGameId) {
+      alert("Please select a game before generating a topic.");
+      return;
+    }
+  
     setIsGeneratingTopic(true);
     try {
       const topic = await generateDebateTopic();
+      // Set the generated topic into the input field, ready to be saved
       setNewTopic(topic); 
+    } catch (error) {
+      console.error("Failed to generate topic:", error);
+      actions.setError("Could not generate a topic right now.");
     } finally {
       setIsGeneratingTopic(false);
+    }
+  };
+  const handleDeleteGame = async (gameId) => {
+    // Simple confirmation to prevent accidental deletion
+    if (window.confirm("Are you sure you want to delete this game? This cannot be undone.")) {
+      try {
+        await deleteGame(activeClassroom.id, gameId);
+        // If the deleted game was the active one, clear the selection
+        if (activeGameId === gameId) {
+          setActiveGameId(null);
+          setActiveGame(null);
+        }
+      } catch (error) {
+        console.error("Error deleting game:", error);
+        actions.setError("Failed to delete the game.");
+      }
     }
   };
 
@@ -216,88 +262,149 @@ function AdminDashboard() {
       </div>
     );
   }
-
   if (view === 'classroom' && activeClassroom) {
     return (
       <div className="admin-dashboard">
-        {state.error && (
-          <div className="error-message">
-            {state.error}
-            <button onClick={() => actions.setError(null)}>×</button>
-          </div>
-        )}
-
-        {/* Classroom Header */}
-        <div className="classroom-header card">
-          <div className="classroom-info">
-            <h2>{activeClassroom.name}</h2>
-            <div className="classroom-meta">
-              <div className="password-display">
-                <span>Session Password: </span>
-                <div className="password-field">
-                  <code className={showPassword ? 'visible' : 'hidden'}>
-                    {showPassword ? activeClassroom.password : '••••••'}
-                  </code>
-                  <button 
-                    className="toggle-password"
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+ {/* Classroom Header */}
+    <div className="classroom-header card">
+              <div className="classroom-info">
+                <h2>{activeClassroom.name}</h2>
+                <div className="classroom-meta">
+                  <div className="password-display">
+                    <span>Session Password: </span>
+                    <div className="password-field">
+                      <code className={showPassword ? 'visible' : 'hidden'}>
+                        {showPassword ? activeClassroom.password : '••••••'}
+                      </code>
+                      <button 
+                        className="toggle-password"
+                        onClick={() => setShowPassword(!showPassword)}
+                      >
+                        {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                      </button>
+                    </div>
+                  </div>
+                  <div className="session-info">
+                    ID: {activeClassroom.id?.slice(-6)} • Created by {activeClassroom.adminName}
+                  </div>
                 </div>
               </div>
-              <div className="session-info">
-                ID: {activeClassroom.id?.slice(-6)} • Created by {activeClassroom.adminName}
+              <button className="new-session-btn btn-secondary" onClick={handleNewClassroom}>
+                <Plus size={16} />
+                New Session
+              </button>
+            </div>
+
+  
+        {/* New Game Management Card */}
+        <div className="game-management card">
+          <h3>Breakout Games</h3>
+          <button
+            className="btn-primary"
+            onClick={() => setIsCreateGameModalOpen(true)}
+          >
+            <Plus size={16} /> Create New Game
+          </button>
+  
+          <div className="games-list">
+            {games.length > 0 ? (
+              games.map(game => (
+                <div
+                  key={game.id}
+                  className={`game-item ${activeGameId === game.id ? 'active' : ''}`}
+                  onClick={() => handleSelectGame(game)}
+                >
+                  <span className="game-name">{game.gameName}</span>
+                  <span className={`game-status ${game.status}`}>{game.status}</span>
+                  <button 
+        className="delete-game-btn" 
+        onClick={() => handleDeleteGame(game.id)}
+      >
+        <Trash2 size={16} />
+      </button>
+                </div>
+                
+              ))
+            ) : (
+              <p>No games created yet. Click "Create New Game" to start.</p>
+            )}
+          </div>
+        </div>
+  
+        {/* This will render the modal popup when isCreateGameModalOpen is true */}
+        {isCreateGameModalOpen && (
+          <CreateGameModal
+            teamA={state.teamA}
+            teamB={state.teamB}
+            onCreate={handleCreateGame}
+            onCancel={() => setIsCreateGameModalOpen(false)}
+          />
+        )}
+  
+        {/* Updated Debate Control Card - only shows if a game is selected */}
+        {activeGame && (
+          <div className="debate-control card">
+            <h3>Controls for "{activeGame.gameName}"</h3>
+            <TimerDisplay /> {/* This will now show the active game's timer */}
+  
+            <div className="topic-management">
+              <strong>Topic:</strong> {activeGame.topic}
+              <form onSubmit={(e) => { e.preventDefault(); handleUpdateTopic(); }} className="topic-form">
+                <input
+                  type="text"
+                  className="form-input"
+                  placeholder="Enter new topic..."
+                  value={newTopic}
+                  onChange={(e) => setNewTopic(e.target.value)}
+                />
+            <button type="button" onClick={handleGenerateTopic} disabled={isGeneratingTopic}>
+                {isGeneratingTopic ? 'Generating...' : '✨ Suggest Topic'}
+              </button>
+              <button type="submit">Update</button>              
+              </form>
+            </div>
+  
+            <div className="active-debate">
+              <div className="vote-display">
+                <div className="vote-item">
+                  <span>Switch Sides:</span>
+                  <span className="vote-count">{activeGame.votes.switch}</span>
+                </div>
+                <div className="vote-item">
+                  <span>Keep Current:</span>
+                  <span className="vote-count">{activeGame.votes.dontSwitch}</span>
+                </div>
+              </div>
+  
+              <div className="main-controls">
+                <button onClick={handleStartGame} className="btn-success" disabled={activeGame.status === 'live'}>
+                  <Play size={16} /> Start Game
+                </button>
+                <button onClick={handleSwitchSides} className="btn-primary">
+                  <RotateCcw size={16} /> Switch Sides
+                </button>
+              </div>
+  
+              <div className="timer-controls">
+                <div className="timer-input-group">
+                  <label htmlFor="timer-minutes">Set Time (min):</label>
+                  <input
+                    type="number"
+                    id="timer-minutes"
+                    value={timerMinutes}
+                    onChange={(e) => setTimerMinutes(Number(e.target.value))}
+                    className="timer-input"
+                  />
+                </div>
+                <button onClick={handleTimerStart} className="btn-primary">Start</button>
+                <button onClick={handleTimerPause} className="btn-secondary">Pause</button>
+                <button onClick={handleTimerReset} className="btn-danger">Reset</button>
               </div>
             </div>
           </div>
-          <button className="new-session-btn btn-secondary" onClick={handleNewClassroom}>
-            <Plus size={16} />
-            New Session
-          </button>
-        </div>
-
-        {/* Topic Management */}
-        <div className="topic-management card">
-          <h3>
-            <Settings size={20} />
-            Debate Topic
-          </h3>
-          <div className="current-topic">
-            <strong>Current Topic:</strong> {state.topic}
-          </div>
-          <form onSubmit={(e) => { e.preventDefault(); handleUpdateTopic(); }} className="topic-form">
-            <input
-              type="text"
-              className="form-input"
-              placeholder="Enter new debate topic..."
-              value={newTopic}
-              onChange={(e) => setNewTopic(e.target.value)}
-            />
-           
-            <button type="button" className="btn-secondary" onClick={handleGenerateTopic} disabled={isGeneratingTopic}>
-            {isGeneratingTopic ? 'Generating...' : '✨ Generate Topic'}
-            </button>
-            <div className="team-info">
-            <p className="team-description">
-            Please Be Patient with the "Generate" Buttons ⏳
-            </p>
-          </div>
-
-            <button type="submit" className="btn-primary" disabled={!newTopic.trim()}>
-              Update Topic
-            </button>
-          </form>
-          <div className="team-info">
-            <p className="team-description">
-              Enter a custom topic or use the AI-generated suggestion.
-              
-            </p>
-          </div>
-        </div>
-
-        {/* Student Management - Auto-Assigned Teams */}
-        <div className="team-management card">
+        )}
+         {/* Student Management - Auto-Assigned Teams */}
+         <div className="team-management card">
           <h3>
             <Users size={20} />
             Auto-Assigned Teams
@@ -382,77 +489,6 @@ function AdminDashboard() {
             </div>
           )}
         </div>
-
-        {/* Debate Control */}
-        <div className="debate-control card">
-          <h3>Debate Control</h3>
-          {state.debateStarted && <TimerDisplay />}
-          {!state.debateStarted ? (
-            <div className="start-section">
-              <p>Ready to begin the debate?</p>
-              <button
-                onClick={handleStartDebate}
-                className="btn-success"
-                disabled={state.teamA.length === 0 || state.teamB.length === 0}
-              >
-                <Play size={16} />
-                Start Debate
-              </button>
-              {(state.teamA.length === 0 || state.teamB.length === 0) && (
-                <p className="requirement-note">
-                  Both teams need at least one student to start the debate
-                </p>
-              )}
-            </div>
-          ) : (
-            <div className="active-debate">
-              <div className="debate-status">
-                <div className="status-indicator active">
-                  <div className="status-dot"></div>
-                  Debate Active
-                </div>
-                <div className="current-side">
-                  Currently Speaking: <strong>Team {state.speakingFor}</strong>
-                </div>
-              </div>
-
-              <div className="vote-display">
-                <div className="vote-item">
-                  <span className="vote-label">Switch Sides:</span>
-                  <span className="vote-count">{state.votes.switch}</span>
-                </div>
-                <div className="vote-item">
-                  <span className="vote-label">Keep Current:</span>
-                  <span className="vote-count">{state.votes.dontSwitch}</span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleSwitchSides}
-                className="btn-primary"
-              >
-                <RotateCcw size={16} />
-                Force Switch Sides
-              </button>
-              <div className="timer-controls">
-              <div className="timer-input-group">
-                <label htmlFor="timer-minutes">Set Time (min):</label>
-                  <input
-                    type="number"
-                    id="timer-minutes"
-                    value={timerMinutes}
-                    onChange={(e) => setTimerMinutes(Number(e.target.value))}
-                    className="timer-input"
-                  />
-                </div>
-                <button onClick={handleTimerStart} className="btn-primary">Start Timer</button>
-                <button onClick={handleTimerPause} className="btn-secondary">Pause Timer</button>
-                <button onClick={handleTimerReset} className="btn-danger">Reset Timer</button>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* Instructions */}
         <div className="instructions card">
           <h3>📋 Instructions</h3>

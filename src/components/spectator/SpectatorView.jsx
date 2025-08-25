@@ -1,24 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Vote, Clock, Trophy, AlertCircle, User, Hash } from 'lucide-react';
 import { useDebate } from '../../context/DebateContext';
-import { submitVote, getDebateData, getTeams } from '../../services/debateService';
+import { submitVoteInGame } from '../../services/debateService';
 import VotePanel from './VotePanel';
 import TimerDisplay from './TimerDisplay';
 import './SpectatorView.css';
 
 function SpectatorView({ classroom, student }) {
-  const { state, actions } = useDebate();
+  const { state, actions, activeGameId } = useDebate();
   const [hasVoted, setHasVoted] = useState(false);
   const [isSubmittingVote, setIsSubmittingVote] = useState(false);
   const [error, setError] = useState('');
 
-  // Load initial data
-  useEffect(() => {
-    if (classroom?.id) {
-      actions.setClassroom(classroom);
-      loadDebateData();
-    }
-  }, [classroom?.id]);
 
   // Check if user has voted (stored in localStorage)
   useEffect(() => {
@@ -29,41 +22,15 @@ function SpectatorView({ classroom, student }) {
     }
   }, [classroom?.id, state.speakingFor]);
 
-  const loadDebateData = async () => {
-    try {
-      actions.setLoading(true);
-      
-      const [debateData, teamsData] = await Promise.all([
-        getDebateData(classroom.id),
-        getTeams(classroom.id)
-      ]);
-
-      if (debateData) {
-        actions.setTopic(debateData.topic);
-        actions.setVotes(debateData.votes || { switch: 0, dontSwitch: 0 });
-        actions.setSpeakingFor(debateData.speakingFor || 'A');
-        actions.setDebateStarted(debateData.debateStarted || false);
-      }
-
-      if (teamsData) {
-        actions.setTeams(teamsData);
-      }
-
-      actions.setLoading(false);
-    } catch (error) {
-      console.error('Error loading debate data:', error);
-      actions.setError('Failed to load debate data');
-    }
-  };
 
   const handleVote = async (voteType) => {
-    if (hasVoted || !classroom?.id) return;
+    if (hasVoted || !classroom?.id || !activeGameId) return;
 
     setIsSubmittingVote(true);
     setError('');
 
     try {
-      await submitVote(classroom.id, voteType);
+      await submitVoteInGame(classroom.id, activeGameId, voteType);
       
       // Mark as voted for this round
       const votedKey = `voted_${classroom.id}_${state.speakingFor}`;
@@ -172,7 +139,29 @@ function SpectatorView({ classroom, student }) {
         </div>
       </div>
       {state.debateStarted && <TimerDisplay />}
-
+            {state.debateStarted && state.activePlayers && (
+        <div className="on-the-floor-card card">
+          <h3>🎤 On the Floor</h3>
+          <div className="active-players-display">
+            <div className="team-column">
+              <h4>Team A Speakers</h4>
+              <ul>
+                {state.activePlayers.teamA.map(player => (
+                  <li key={player.admissionNumber}>{player.name}</li>
+                ))}
+              </ul>
+            </div>
+            <div className="team-column">
+              <h4>Team B Speakers</h4>
+              <ul>
+                {state.activePlayers.teamB.map(player => (
+                  <li key={player.admissionNumber}>{player.name}</li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+)}
       {/* Teams Overview */}
       <div className="teams-overview">
         <div className={`team-card team-a ${getMyTeam() === 'A' ? 'my-team' : ''}`}>

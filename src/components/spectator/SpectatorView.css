@@ -442,3 +442,22 @@
     height: 40px;
   }
 }
+.on-the-floor-card {
+  margin-top: 20px;
+}
+.active-players-display {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 15px;
+}
+.on-the-floor-card .team-column ul {
+  list-style-type: none;
+  padding: 0;
+}
+.on-the-floor-card .team-column li {
+  background-color: #f8f9fa;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin-bottom: 5px;
+  text-align: center;
+}
