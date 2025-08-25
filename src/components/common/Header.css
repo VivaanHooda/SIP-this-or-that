@@ -286,3 +286,289 @@
     font-size: 0.85rem;
   }
 }
+
+/* Header Center Content */
+.header-center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  max-width: 600px;
+}
+
+.admin-info,
+.spectator-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Non-button role badges - removed button-like appearance */
+.role-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 25px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  /* Removed cursor pointer and hover effects */
+  transition: none;
+  user-select: none; /* Prevent text selection */
+}
+
+.role-badge.admin {
+  background: rgba(255, 255, 255, 0.25);
+  border: 2px solid rgba(255, 255, 255, 0.4);
+  color: white;
+  /* Subtle inner glow for elegance */
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3);
+}
+
+.role-badge.spectator {
+  background: rgba(255, 255, 255, 0.2);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  color: white;
+  /* Subtle inner glow for elegance */
+  box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.25);
+}
+
+/* Session Details */
+.session-details {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.classroom-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+
+.classroom-name {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: white;
+}
+
+.classroom-password {
+  font-size: 0.85rem;
+  opacity: 0.9;
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.classroom-password strong {
+  background: rgba(255, 255, 255, 0.25);
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-family: 'Courier New', monospace;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.session-status {
+  font-size: 0.8rem;
+  opacity: 0.85;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.session-status:before {
+  content: "●";
+  color: #4ade80;
+  animation: pulse 2s infinite;
+  filter: drop-shadow(0 0 3px rgba(74, 222, 128, 0.6));
+}
+
+/* Student Info Container */
+.student-info {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255, 255, 255, 0.15);
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  backdrop-filter: blur(5px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.student-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: white;
+}
+
+.student-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.admission-number {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-family: 'Courier New', monospace;
+  background: rgba(255, 255, 255, 0.2);
+  padding: 3px 6px;
+  border-radius: 5px;
+  color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.team-indicator {
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border: 1px solid transparent;
+}
+
+.team-indicator.team-a {
+  background: rgba(59, 130, 246, 0.9);
+  color: white;
+  border-color: rgba(59, 130, 246, 0.3);
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3);
+}
+
+.team-indicator.team-b {
+  background: rgba(239, 68, 68, 0.9);
+  color: white;
+  border-color: rgba(239, 68, 68, 0.3);
+  box-shadow: 0 1px 3px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 968px) {
+  .header-center {
+    order: 3;
+    max-width: 100%;
+    justify-content: center;
+  }
+  
+  .admin-info,
+  .spectator-info {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .role-badge {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+  }
+  
+  .student-info {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+  }
+  
+  .student-details {
+    flex-direction: column;
+    gap: 4px;
+    align-items: center;
+  }
+  
+  .classroom-info {
+    flex-direction: column;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 640px) {
+  .role-badge {
+    padding: 5px 10px;
+    font-size: 0.8rem;
+    gap: 4px;
+  }
+  
+  .classroom-info {
+    flex-direction: column;
+    gap: 4px;
+  }
+  
+  .classroom-name {
+    font-size: 0.9rem;
+  }
+  
+  .classroom-password {
+    font-size: 0.8rem;
+  }
+  
+  .classroom-password strong {
+    padding: 2px 6px;
+    font-size: 0.75rem;
+  }
+  
+  .student-info {
+    padding: 6px 10px;
+    gap: 8px;
+  }
+  
+  .student-name {
+    font-size: 0.85rem;
+    gap: 4px;
+  }
+  
+  .student-details {
+    font-size: 0.75rem;
+    gap: 8px;
+  }
+  
+  .admission-number {
+    gap: 3px;
+    padding: 2px 5px;
+    font-size: 0.7rem;
+  }
+  
+  .team-indicator {
+    padding: 2px 6px;
+    font-size: 0.7rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .role-badge {
+    padding: 4px 8px;
+    font-size: 0.75rem;
+    border-radius: 20px;
+  }
+  
+  .student-info {
+    flex-direction: column;
+    gap: 6px;
+    padding: 6px 8px;
+  }
+  
+  .student-details {
+    flex-direction: row;
+    gap: 6px;
+  }
+}

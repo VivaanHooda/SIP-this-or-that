@@ -42,3 +42,293 @@
     justify-content: flex-end;
     gap: 10px;
   }
+
+  /* Modal Overlay */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* Modal Content */
+.modal-content {
+  background: var(--card-bg, #1f2937);
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.1));
+  border-radius: 20px;
+  padding: 40px 32px;
+  max-width: 800px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  animation: slideInUp 0.4s ease-out;
+}
+
+.modal-content::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, transparent 0%, rgba(59, 130, 246, 0.05) 100%);
+  border-radius: 20px;
+  pointer-events: none;
+}
+
+/* Modal Header */
+.modal-content h2 {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--text, white);
+  margin-bottom: 32px;
+  text-align: center;
+  background: linear-gradient(135deg, #3b82f6, #06b6d4, #8b5cf6);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+/* Form Group */
+.form-group {
+  margin-bottom: 32px;
+}
+
+.form-group label {
+  display: block;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text, white);
+  margin-bottom: 12px;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 16px 20px;
+  font-size: 1rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: var(--text, white);
+  transition: all 0.3s ease;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.form-group input::placeholder {
+  color: var(--muted, #9ca3af);
+}
+
+/* Player Selection */
+.player-selection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  margin-bottom: 32px;
+}
+
+.team-column {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 24px 20px;
+  transition: all 0.3s ease;
+}
+
+.team-column:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.12);
+}
+
+.team-column h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: var(--text, white);
+  margin-bottom: 20px;
+  text-align: center;
+  padding-bottom: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Player Checkbox */
+.player-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  transition: all 0.2s ease;
+}
+
+.player-checkbox:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.player-checkbox input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-right: 12px;
+  accent-color: #3b82f6;
+  cursor: pointer;
+}
+
+.player-checkbox label {
+  color: var(--text, white);
+  font-size: 1rem;
+  cursor: pointer;
+  flex: 1;
+  margin: 0;
+  transition: color 0.2s ease;
+}
+
+.player-checkbox:hover label {
+  color: #3b82f6;
+}
+
+/* Modal Actions */
+.modal-actions {
+  display: flex;
+  gap: 16px;
+  justify-content: flex-end;
+  margin-top: 40px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Secondary Button */
+.btn-secondary {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted, #9ca3af);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--text, white);
+  border-color: rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+/* Primary Button (already defined in previous artifact) */
+.btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #06b6d4, #8b5cf6);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  padding: 16px 32px;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  letter-spacing: -0.01em;
+}
+
+.btn-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px rgba(59, 130, 246, 0.3);
+}
+
+.btn-primary:hover::before {
+  opacity: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .modal-content {
+    padding: 32px 24px;
+    width: 95%;
+    max-height: 90vh;
+  }
+
+  .modal-content h2 {
+    font-size: 1.6rem;
+  }
+
+  .player-selection {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+
+  .modal-actions {
+    flex-direction: column-reverse;
+  }
+
+  .btn-primary,
+  .btn-secondary {
+    width: 100%;
+    padding: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .modal-content {
+    padding: 24px 20px;
+  }
+
+  .modal-content h2 {
+    font-size: 1.4rem;
+    margin-bottom: 24px;
+  }
+
+  .team-column {
+    padding: 20px 16px;
+  }
+}
