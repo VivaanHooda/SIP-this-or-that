@@ -1,5 +1,6 @@
 import { db } from './firebase';
 import { doc, setDoc, getDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import {createGame} from './debateService';
 
 // Use environment variable or fallback to your key
 const GEMINI_API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || 'AIzaSyCT33ONf8J1povWiKDGSigwPkg4lQr8ao8';// Fixed API URL - use the correct endpoint
@@ -126,18 +127,17 @@ export const createClassroom = async (classroomData) => {
       name: classroomData.name || 'Debate Classroom',
       password, // Use the guaranteed unique password
       adminName: classroomData.adminName || 'Teacher',
-      topic: classroomData.topic || 'Is technology making us less social?',
       createdAt: new Date().toISOString(),
       isActive: true,
     };
     
     await setDoc(classroomRef, classroom);
-    
-    // Also create the debate and teams documents for this classroom
-    await setDoc(doc(db, 'teams', classroomRef.id), {
-      teamA: [],
-      teamB: [],
-    });
+    if (classroomData.topic) {
+      await createGame(classroom.id, {
+        gameName: "Game 1",
+        topic: classroomData.topic,
+      });
+    }
     
     return classroom;
 

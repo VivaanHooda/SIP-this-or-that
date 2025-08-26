@@ -22,6 +22,7 @@ import {
   removeStudentFromTeam,
   getClassroomByPassword,
   clearAllTeams,
+  subscribeToTeams,
 } from '../../services/debateService';
 import CreateGameModal from './CreateGameModal';
 import ClassroomSetup from './ClassroomSetup';
@@ -45,7 +46,7 @@ function AdminDashboard() {
   const [rejoinPassword, setRejoinPassword] = useState('');
   const [isDataLoading, setIsDataLoading] = useState(true);
 
-
+  
   useEffect(() => {
     // This function will run whenever a new classroom is loaded
     const loadInitialData = async () => {
@@ -110,7 +111,19 @@ function AdminDashboard() {
     return () => unsubscribe();
   }, [activeClassroom?.id]);
 
-  
+  useEffect(() => {
+    if (!activeClassroom?.id) return;
+
+    // This will keep the master team list in the context up-to-date
+    const unsubscribe = subscribeToTeams(activeClassroom.id, (teamsData) => {
+      if (teamsData) {
+        actions.setTeams(teamsData);
+      }
+    });
+
+    return () => unsubscribe(); // Clean up the listener
+  }, [activeClassroom?.id]);
+
   const handleCreateClassroom = async (classroomData) => {
     try {
       actions.setLoading(true);

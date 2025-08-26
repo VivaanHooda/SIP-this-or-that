@@ -1,6 +1,6 @@
 "use client";
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
-import { subscribeToGamesList, subscribeToTeams } from '../services/debateService';
+import { subscribeToGamesList, subscribeToTeams, subscribeToGame } from '../services/debateService';
 
 const DebateContext = createContext();
 
@@ -93,57 +93,56 @@ export function DebateProvider({ children }) {
   useEffect(() => {
     if (!state.currentClassroom?.id) return;
   
-    // This listener gets the list of all games in real-time
-    const unsubscribeGames = subscribeToGamesList(state.currentClassroom.id, (gamesList) => {
+    let unsubscribeGame = () => {}; // To hold our inner listener
   
-      // It finds the one game that the admin has set to "live"
-      const liveGame = gamesList.find(game => game.status === 'live');
+    // First, listen to the main classroom document to find the activeGameId
+    const unsubscribeClassroom = onSnapshot(doc(db, 'classrooms', state.currentClassroom.id), (classroomDoc) => {
+      const liveGameId = classroomDoc.data()?.activeGameId;
   
-      // This is the block that was missing
-      if (liveGame) {
-        // If a live game is found, it updates the app's state with its data
-        dispatch({
-          type: ACTIONS.UPDATE_DEBATE_DATA,
-          payload: {
-            activeGameId: liveGame.id, // The crucial ID for voting
-            topic: liveGame.topic,
-            votes: liveGame.votes || { switch: 0, dontSwitch: 0 },
-            speakingFor: liveGame.speakingFor,
-            debateStarted: true,
-            timer: liveGame.timer,
-            isTimerRunning: liveGame.isTimerRunning,
-            activePlayers: {
-              teamA: liveGame.teamAPlayers || [],
-              teamB: liveGame.teamBPlayers || [],
-            }
+      // Unsubscribe from any previous game listener
+      unsubscribeGame();
+  
+      if (liveGameId) {
+        // If a game is active, subscribe specifically to that game
+        unsubscribeGame = subscribeToGame(state.currentClassroom.id, liveGameId, (liveGame) => {
+          if (liveGame) {
+            dispatch({
+              type: ACTIONS.UPDATE_DEBATE_DATA,
+              payload: {
+                activeGameId: liveGame.id,
+                topic: liveGame.topic,
+                votes: liveGame.votes,
+                speakingFor: liveGame.speakingFor,
+                debateStarted: true,
+                timer: liveGame.timer,
+                isTimerRunning: liveGame.isTimerRunning,
+                activePlayers: {
+                  teamA: liveGame.teamAPlayers,
+                  teamB: liveGame.teamBPlayers,
+                }
+              }
+            });
           }
         });
       } else {
-        // If no game is "live", it resets the app to the "waiting" state
+        // If no game is active, reset the state
         dispatch({ type: ACTIONS.SET_DEBATE_STARTED, payload: false });
       }
     });
   
-    // This listener for the master team roster stays the same
+    // The listener for the master team roster stays the same
     const unsubscribeTeams = subscribeToTeams(state.currentClassroom.id, (teamsData) => {
       if (teamsData) {
-        dispatch({
-          type: ACTIONS.SET_TEAMS,
-          payload: {
-            teamA: teamsData.teamA || [],
-            teamB: teamsData.teamB || []
-          }
-        });
+        dispatch({ type: ACTIONS.SET_TEAMS, payload: teamsData });
       }
     });
   
     return () => {
-      unsubscribeGames();
+      unsubscribeClassroom();
+      unsubscribeGame();
       unsubscribeTeams();
     };
-  }, [state.currentClassroom?.id]);
-
-  // Action creators
+  }, [state.currentClassroom?.id]);  
   const actions = {
     setLoading: (loading) => dispatch({ type: ACTIONS.SET_LOADING, payload: loading }),
     setError: (error) => dispatch({ type: ACTIONS.SET_ERROR, payload: error }),

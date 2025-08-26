@@ -229,27 +229,41 @@ export const updateTopicInGame = async (classroomId, gameId, newTopic) => {
   }
 };
 
-// Start debate (Admin only)
-// Corrected version
-export const startGame = async (classroomId, gameId) => { // 👈 gameId was missing
+export const startGame = async (classroomId, gameId) => {
   try {
-    if (!classroomId || !gameId) {
-      throw new Error('Classroom ID and Game ID are required');
-    }
+    if (!classroomId || !gameId) throw new Error('Classroom and Game ID required');
     
+    // First, update the specific game's status to "live"
     const gameDocRef = doc(db, 'classrooms', classroomId, 'games', gameId);
+    await updateDoc(gameDocRef, { status: 'live' });
     
-    await updateDoc(gameDocRef, {
-      status: 'live',
-      votes: { switch: 0, dontSwitch: 0 },
-      lastUpdated: new Date().toISOString()
-    });
+    // NEXT, set this game's ID as the "activeGameId" on the main classroom document
+    const classroomDocRef = doc(db, 'classrooms', classroomId);
+    await updateDoc(classroomDocRef, { activeGameId: gameId });
+    
     return true;
   } catch (error) {
     handleFirebaseError(error, 'startGame');
   }
 };
-// Switch sides (Admin only)
+export const endGame = async (classroomId, gameId) => {
+  try {
+    if (!classroomId || !gameId) throw new Error('Classroom and Game ID required');
+
+    // Update the game's status to "finished"
+    const gameDocRef = doc(db, 'classrooms', classroomId, 'games', gameId);
+    await updateDoc(gameDocRef, { status: 'finished', isTimerRunning: false });
+
+    // Clear the "activeGameId" pointer from the main classroom document
+    const classroomDocRef = doc(db, 'classrooms', classroomId);
+    await updateDoc(classroomDocRef, { activeGameId: null });
+
+    return true;
+  } catch (error) {
+    handleFirebaseError(error, 'endGame');
+  }
+};
+
 export const switchSidesInGame = async (classroomId,gameId) => {
   try {
     if (!classroomId || !gameId) {
@@ -535,6 +549,21 @@ export const createGame = async (classroomId, gameData) => {
     return { id: docRef.id, ...newGame }; // Return the new game with its ID
   } catch (error) {
     handleFirebaseError(error, 'createGame');
+  }
+};
+export const subscribeToGame = (classroomId, gameId, callback) => {
+  try {
+    const gameDocRef = doc(db, 'classrooms', classroomId, 'games', gameId);
+    return onSnapshot(gameDocRef, (doc) => {
+      if (doc.exists()) {
+        callback({ id: doc.id, ...doc.data() });
+      } else {
+        callback(null); // The game was not found or deleted
+      }
+    });
+  } catch (error) {
+    console.error("Error subscribing to game:", error);
+    return () => {};
   }
 };
 export const subscribeToGamesList = (classroomId, callback) => {
