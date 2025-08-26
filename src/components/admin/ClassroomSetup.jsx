@@ -197,8 +197,13 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
                   ✨ Generate Topic
                 </>
               )}
-              
+             
             </button>
+            <div className="team-info">
+                <p className="team-description">
+                Please Be Patient with the "Generate" Buttons ⏳
+                </p>
+              </div>
           </div>
         </div>
         </div>
@@ -227,11 +232,7 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
                   </>
                 )}
               </button>
-              <div className="team-info">
-                <p className="team-description">
-                Please Be Patient with the "Generate" Buttons ⏳
-                </p>
-              </div>
+              
               <div className="team-info">
                 <p className="team-description">
                 Please Be Patient with the "Generate" Buttons ⏳
