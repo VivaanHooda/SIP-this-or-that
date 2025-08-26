@@ -10,16 +10,15 @@ export const generateDebatePassword = async () => {
   try {
     const prompt = `Generate a unique, memorable password for a classroom debate session. 
     Requirements:
-    - Should be related to debating, public speaking, or critical thinking
-    - Include 2-3 random numbers
-    - Be 8-12 characters long
-    - Easy to remember and type
-    - No special characters that might cause input issues
+    - Combine one random, simple English word with 2-3 random numbers.
+    - The word should be related to debating, learning, or ideas.
+    - Total length should be 8-12 characters.
+    - Easy to remember and type.
+    - No special characters.
     
-    Examples of good passwords: "rhetoric42", "eloquence7", "debate2024"
+    Examples: "logic481", "reason92", "idea583"
     
     Return only the password, nothing else.`;
-
     const response = await fetch(GEMINI_API_URL, {
       method: 'POST',
       headers: {
@@ -100,62 +99,53 @@ export const validatePassword = (password) => {
 // Create a new classroom with password
 export const createClassroom = async (classroomData) => {
   try {
-    const { name, password, adminName, topic } = classroomData;
-    
-    // Check if password already exists
-    try {
+    let password;
+    let isUnique = false;
+    let attempts = 0;
+
+    // This loop will continue until a unique password is found
+    while (!isUnique && attempts < 10) { // We'll add a safety limit of 10 tries
+      password = await generateDebatePassword();
       const existingClassroom = await getClassroomByPassword(password);
-      if (existingClassroom) {
-        throw new Error('This password is already in use. Please generate a new one.');
+      if (!existingClassroom) {
+        // If no classroom is found with this password, it's unique!
+        isUnique = true;
       }
-    } catch (error) {
-      // If it's a permission error, continue anyway
-      if (!error.message.includes('already in use')) {
-        console.warn('Could not check for existing password:', error);
-      }
+      attempts++;
     }
-    
+
+    if (!isUnique) {
+      // If we still couldn't find a unique password after 10 tries, use a fallback
+      throw new Error('Failed to generate a unique password after multiple attempts.');
+    }
+
+    // --- The rest of the function continues as before ---
     const classroomRef = doc(collection(db, 'classrooms'));
     const classroom = {
       id: classroomRef.id,
-      name: name || 'Debate Classroom',
-      password,
-      adminName: adminName || 'Teacher',
-      topic: topic || 'Is technology making us less social?',
+      name: classroomData.name || 'Debate Classroom',
+      password, // Use the guaranteed unique password
+      adminName: classroomData.adminName || 'Teacher',
+      topic: classroomData.topic || 'Is technology making us less social?',
       createdAt: new Date().toISOString(),
       isActive: true,
-      debateStarted: false,
-      teamA: [],
-      teamB: [],
-      votes: { switch: 0, dontSwitch: 0 },
-      speakingFor: 'A'
     };
     
     await setDoc(classroomRef, classroom);
     
-    await setDoc(doc(db, 'debate', classroomRef.id), {
-      topic: classroom.topic,
-      votes: classroom.votes,
-      speakingFor: classroom.speakingFor,
-      debateStarted: classroom.debateStarted,
-      timer: 300, 
-      isTimerRunning: false,
-      lastUpdated: new Date().toISOString()
-    });
-    
+    // Also create the debate and teams documents for this classroom
     await setDoc(doc(db, 'teams', classroomRef.id), {
-      teamA: classroom.teamA,
-      teamB: classroom.teamB,
-      lastUpdated: new Date().toISOString()
+      teamA: [],
+      teamB: [],
     });
     
     return classroom;
+
   } catch (error) {
     console.error('Error creating classroom:', error);
-    throw error;
+    throw error; // Re-throw the error to be handled by the component
   }
 };
-
 // Get classroom by password
 export const getClassroomByPassword = async (password) => {
   try {

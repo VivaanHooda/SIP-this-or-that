@@ -17,7 +17,8 @@ const initialState = {
   error: null,
   hasVoted: false,
   time: 60,
-  isTimerRunning: false
+  isTimerRunning: false,
+  activeGameId: null 
 };
 
 // Action types
@@ -92,16 +93,19 @@ export function DebateProvider({ children }) {
   useEffect(() => {
     if (!state.currentClassroom?.id) return;
   
-    // This new listener gets the whole list of games
+    // This listener gets the list of all games in real-time
     const unsubscribeGames = subscribeToGamesList(state.currentClassroom.id, (gamesList) => {
-      // Find the one game that the admin has set to "live"
+  
+      // It finds the one game that the admin has set to "live"
       const liveGame = gamesList.find(game => game.status === 'live');
   
+      // This is the block that was missing
       if (liveGame) {
-        // If a live game is found, update the context with its data
+        // If a live game is found, it updates the app's state with its data
         dispatch({
           type: ACTIONS.UPDATE_DEBATE_DATA,
           payload: {
+            activeGameId: liveGame.id, // The crucial ID for voting
             topic: liveGame.topic,
             votes: liveGame.votes || { switch: 0, dontSwitch: 0 },
             speakingFor: liveGame.speakingFor,
@@ -115,10 +119,12 @@ export function DebateProvider({ children }) {
           }
         });
       } else {
-        // If no game is live, reset to the "waiting" state
+        // If no game is "live", it resets the app to the "waiting" state
         dispatch({ type: ACTIONS.SET_DEBATE_STARTED, payload: false });
       }
     });
+  
+    // This listener for the master team roster stays the same
     const unsubscribeTeams = subscribeToTeams(state.currentClassroom.id, (teamsData) => {
       if (teamsData) {
         dispatch({
@@ -130,7 +136,7 @@ export function DebateProvider({ children }) {
         });
       }
     });
-
+  
     return () => {
       unsubscribeGames();
       unsubscribeTeams();

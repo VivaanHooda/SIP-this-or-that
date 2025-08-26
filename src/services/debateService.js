@@ -11,8 +11,7 @@ import {
   query,
   where,
   getDocs,
-  arrayUnion,
-  arrayRemove
+  deleteDoc
 } from 'firebase/firestore';
 
 // Helper function to handle Firebase errors

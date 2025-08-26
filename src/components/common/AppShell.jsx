@@ -127,6 +127,7 @@ function AppShell() {
       safeSetItem('isAuthenticated', 'true');
       safeSetItem('currentClassroom', JSON.stringify(classroom));
       safeSetItem('currentStudent', JSON.stringify(studentData));
+      safeSetItem(`student_details_${classroom.id}`, JSON.stringify(studentData));
     } catch (error) {
       console.error('Error setting spectator session:', error);
     }

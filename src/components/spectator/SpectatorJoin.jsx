@@ -10,6 +10,8 @@ function SpectatorJoin({ onJoin, onBack }) {
   const [error, setError] = useState('');
   const [classroom, setClassroom] = useState(null);
   const [showRegistration, setShowRegistration] = useState(false);
+  const [returningStudent, setReturningStudent] = useState(null);
+
 
   const handlePasswordChange = (e) => {
     setPassword(e.target.value);
@@ -34,7 +36,15 @@ function SpectatorJoin({ onJoin, onBack }) {
         setError('Invalid session password. Please check with the volunteer.');
         return;
       }
-
+      const savedDetails = localStorage.getItem(`student_details_${foundClassroom.id}`);
+    if (savedDetails) {
+      // If details are found, show the quick rejoin prompt
+      setReturningStudent(JSON.parse(savedDetails));
+    } else {
+      // If no details are found, show the normal registration form
+      setClassroom(foundClassroom);
+      setShowRegistration(true);
+    }
       if (!foundClassroom.isActive) {
         setError('This debate session is no longer active.');
         return;
@@ -60,7 +70,32 @@ function SpectatorJoin({ onJoin, onBack }) {
     setClassroom(null);
     setPassword('');
   };
-
+  if (returningStudent) {
+    return (
+      <div className="spectator-join">
+        <div className="join-container card">
+          <div className="join-header">
+            <h2>Welcome Back, {returningStudent.name}!</h2>
+            <p>Are you trying to rejoin the session?</p>
+          </div>
+          <div className="action-buttons">
+            <button 
+              className="btn-secondary" 
+              onClick={() => setReturningStudent(null)}
+            >
+              No, I'm a different student
+            </button>
+            <button 
+              className="btn-primary" 
+              onClick={() => onJoin(classroom, returningStudent)}
+            >
+              Yes, Rejoin Now
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
   // Show registration form if classroom is found
   if (showRegistration && classroom) {
     return (

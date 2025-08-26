@@ -1,6 +1,6 @@
 "use client";
 import React from 'react';
-import { LogOut, Settings, Users, User, Hash } from 'lucide-react';
+import { LogOut, Users, User, Hash } from 'lucide-react';
 import './Header.css';
 
 function Header({ userRole, currentClassroom, currentStudent, onLogout }) {
@@ -19,7 +19,6 @@ function Header({ userRole, currentClassroom, currentStudent, onLogout }) {
           {userRole === 'admin' && (
             <div className="admin-info">
               <span className="role-badge admin">
-                <Settings size={16} />
                 Admin Dashboard
               </span>
               {currentClassroom && (

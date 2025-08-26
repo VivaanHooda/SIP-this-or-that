@@ -10,15 +10,18 @@ import {
   generateDebateTopic
 } from '../../services/geminiService';
 import {
-  updateTimerInGame,
-  subscribeToGamesList,
   createGame,
-  startGame,
-  removeStudentFromTeam,
-  clearAllTeams,
+  subscribeToGamesList,
   updateTopicInGame,
+  startGame,
+  switchSidesInGame,
+  updateTimerInGame,
   deleteGame,
-  switchSidesInGame
+  getTeams,
+  getClassroomStudents,
+  removeStudentFromTeam,
+  getClassroomByPassword,
+  clearAllTeams,
 } from '../../services/debateService';
 import CreateGameModal from './CreateGameModal';
 import ClassroomSetup from './ClassroomSetup';
@@ -39,6 +42,48 @@ function AdminDashboard() {
   const [activeGameId, setActiveGameId] = useState(null);
   const [isCreateGameModalOpen, setIsCreateGameModalOpen] = useState(false);
   const [activeGame,setActiveGame] = useState(null);
+  const [rejoinPassword, setRejoinPassword] = useState('');
+  const [isDataLoading, setIsDataLoading] = useState(true);
+
+
+  useEffect(() => {
+    // This function will run whenever a new classroom is loaded
+    const loadInitialData = async () => {
+      if (!activeClassroom?.id) return;
+  
+      setIsDataLoading(true); // Start loading
+      try {
+        // Fetch the master team list and all registered students
+        const teamsData = await getTeams(activeClassroom.id);
+        const studentsData = await getClassroomStudents(activeClassroom.id);
+  
+        // Update the global state with the master team roster
+        if (teamsData) {
+          actions.setTeams(teamsData);
+        }
+        // Update the local state with the list of all students
+        if (studentsData) {
+          setStudents(studentsData);
+        }
+  
+      } catch (error) {
+        console.error('Error loading initial classroom data:', error);
+        actions.setError('Failed to load classroom data.');
+      } finally {
+        setIsDataLoading(false); // Finish loading
+      }
+    };
+  
+    loadInitialData();
+  }, [activeClassroom?.id]);
+  useEffect(() => {
+    if (activeGameId) {
+      const newActiveGame = games.find(game => game.id === activeGameId);
+      setActiveGame(newActiveGame);
+    } else {
+      setActiveGame(null);
+    }
+  }, [games, activeGameId]);
 
   useEffect(() => {
     setIsClient(true);
@@ -240,6 +285,31 @@ function AdminDashboard() {
       }
     }
   };
+  const handleRejoinSession = async () => {
+    if (!rejoinPassword.trim()) {
+      actions.setError("Please enter a session password.");
+      return;
+    }
+  
+    actions.setLoading(true);
+    try {
+      const classroom = await getClassroomByPassword(rejoinPassword.trim());
+      if (classroom) {
+        // If found, load it into state and save to localStorage
+        setActiveClassroom(classroom);
+        actions.setClassroom(classroom);
+        localStorage.setItem('currentClassroom', JSON.stringify(classroom));
+        setView('classroom'); // Switch to the main classroom view
+      } else {
+        actions.setError("No classroom found with that password.");
+      }
+    } catch (error) {
+      console.error("Rejoin error:", error);
+      actions.setError("Failed to rejoin the session.");
+    } finally {
+      actions.setLoading(false);
+    }
+  };
 
   if (state.isLoading) {
     return (
@@ -262,6 +332,31 @@ function AdminDashboard() {
       </div>
     );
   }
+  if (view === 'rejoin') {
+    return (
+      <div className="admin-dashboard">
+        <div className="rejoin-card card">
+          <h2>Rejoin Session</h2>
+          <p>Enter the session password to get back to your classroom.</p>
+          {state.error && <div className="error-message">{state.error}</div>}
+          <form onSubmit={(e) => { e.preventDefault(); handleRejoinSession(); }}>
+            <input
+              type="text"
+              className="form-input"
+              placeholder="Enter session password"
+              value={rejoinPassword}
+              onChange={(e) => setRejoinPassword(e.target.value)}
+            />
+            <div className="action-buttons">
+              <button type="button" className="btn-secondary" onClick={() => setView('dashboard')}>Back</button>
+              <button type="submit" className="btn-primary">Rejoin</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    );
+  }
+  
   if (view === 'classroom' && activeClassroom) {
     return (
       <div className="admin-dashboard">
@@ -295,7 +390,13 @@ function AdminDashboard() {
               </button>
             </div>
 
-  
+        {isDataLoading ? (
+        <div className="loading">
+          <div className="loading-spinner"></div>
+          <p>Loading classroom data...</p>
+        </div>
+      ) : (
+        <>
         {/* New Game Management Card */}
         <div className="game-management card">
           <h3>Breakout Games</h3>
@@ -344,8 +445,22 @@ function AdminDashboard() {
         {/* Updated Debate Control Card - only shows if a game is selected */}
         {activeGame && (
           <div className="debate-control card">
-            <h3>Controls for "{activeGame.gameName}"</h3>
-            <TimerDisplay /> {/* This will now show the active game's timer */}
+          <h3>Controls for: "{activeGame.gameName}"</h3>
+          
+          <div className="active-speakers">
+          <h4>Currently Debating:</h4>
+          <div className="speaker-lists">
+            <div>
+              <strong>Team A:</strong>
+              <span>{activeGame.teamAPlayers.map(p => p.name).join(', ')}</span>
+            </div>
+            <div>
+              <strong>Team B:</strong>
+              <span>{activeGame.teamBPlayers.map(p => p.name).join(', ')}</span>
+            </div>
+          </div>
+        </div>
+        {activeGame.status === 'live' && <TimerDisplay />} {/* This will now show the active game's timer */}
   
             <div className="topic-management">
               <strong>Topic:</strong> {activeGame.topic}
@@ -363,7 +478,7 @@ function AdminDashboard() {
               <button type="submit">Update</button>              
               </form>
             </div>
-  
+            {activeGame.status === 'live' && (
             <div className="active-debate">
               <div className="vote-display">
                 <div className="vote-item">
@@ -377,9 +492,11 @@ function AdminDashboard() {
               </div>
   
               <div className="main-controls">
+              {activeGame.status === 'waiting' && (
                 <button onClick={handleStartGame} className="btn-success" disabled={activeGame.status === 'live'}>
                   <Play size={16} /> Start Game
                 </button>
+              )}
                 <button onClick={handleSwitchSides} className="btn-primary">
                   <RotateCcw size={16} /> Switch Sides
                 </button>
@@ -401,6 +518,7 @@ function AdminDashboard() {
                 <button onClick={handleTimerReset} className="btn-danger">Reset</button>
               </div>
             </div>
+          )}
           </div>
         )}
          {/* Student Management - Auto-Assigned Teams */}
@@ -500,6 +618,8 @@ function AdminDashboard() {
             <li><strong>Start when ready:</strong> Both teams need at least one student to begin</li>
           </ul>
         </div>
+        </>
+      )}
       </div>
     );
   }
@@ -520,6 +640,13 @@ function AdminDashboard() {
               <Plus size={20} />
               Create New Classroom Session
             </button>
+            <button
+            onClick={() => setView('rejoin')}
+            className="btn-secondary large"
+          >
+            <Users size={20} />
+            Rejoin Existing Session
+          </button>
           </div>
         </div>
       </div>

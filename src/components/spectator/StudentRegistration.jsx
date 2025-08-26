@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, Hash, Users, Loader } from 'lucide-react';
 import { registerStudent } from '../../services/debateService';
 import './StudentRegistration.css';
@@ -10,7 +10,20 @@ function StudentRegistration({ classroom, onRegistrationComplete, onBack }) {
   });
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState('');
-
+  useEffect(() => {
+    try {
+      const savedDetails = localStorage.getItem(`student_details_${classroom.id}`);
+      if (savedDetails) {
+        const student = JSON.parse(savedDetails);
+        setFormData({
+          studentName: student.name || '',
+          admissionNumber: student.admissionNumber || ''
+        });
+      }
+    } catch (error) {
+      console.warn('Could not retrieve saved student details:', error);
+    }
+  }, [classroom.id]);
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({

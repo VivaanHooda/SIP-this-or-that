@@ -2,7 +2,6 @@
 "use client";
 import React, { useEffect } from 'react';
 import { X } from 'lucide-react';
-import './Modal.css';
 
 function Modal({ isOpen, onClose, title, children, size = "medium" }) {
   useEffect(() => {

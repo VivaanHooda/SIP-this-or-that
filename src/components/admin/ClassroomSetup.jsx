@@ -4,12 +4,21 @@ import { ArrowLeft, Plus, RefreshCw, Copy, Check } from 'lucide-react';
 import { generateDebatePassword, generateDebateTopic } from '../../services/geminiService';
 import './ClassroomSetup.css';
 
+const classOptions = [
+  "AIML-CR001","AIML-CR002","BT-217","BT-218","CH-104","CH-105",
+  "CE-204","CE-205","CE-217","CE-312","CE-317","CE-319",
+  "EE-116","EE-117","EE-112","EE-203","EE-202","EE-215",
+  "EC-203","EC-204","EC-205","EC-211","EC-212","EC-214",
+  "IS-112B","IS-106A"
+];
+
 function ClassroomSetup({ onClassroomCreated, onBack }) {
   const [formData, setFormData] = useState({
-    name: '',
+    name: classOptions[0], // 👈 Set the default value
     adminName: '',
-    topic: 'Is technology making us less social?'
+    topic: ''
   });
+  
   const [password, setPassword] = useState('');
   const [isGeneratingTopic, setIsGeneratingTopic] = useState(false);
   const [isGeneratingPassword, setIsGeneratingPassword] = useState(false);
@@ -129,16 +138,20 @@ function ClassroomSetup({ onClassroomCreated, onBack }) {
           
           <div className="form-group">
             <label htmlFor="name">Classroom Name *</label>
-            <input
-              id="name"
-              name="name"
-              type="text"
-              className="classroom-input"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="e.g., CV 309"
-              required
-            />
+            <select
+            id="name"
+            name="name"
+            className="classroom-input" // You can use the same style
+            value={formData.name}
+            onChange={handleInputChange}
+            required
+          >
+            {classOptions.map(option => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
           </div>
 
           <div className="form-group">
